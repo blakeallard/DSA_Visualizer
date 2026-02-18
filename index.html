@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSA Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #16161f;
+    --border: #1e1e2e;
+    --accent: #00ffc8;
+    --accent2: #ff6b35;
+    --accent3: #a855f7;
+    --blue: #7dd3fc;
+    --text: #e2e8f0;
+    --muted: #4a5568;
+    --muted2: #2d3748;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,200,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,200,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .orb2 {
+    position: fixed;
+    bottom: -200px;
+    right: -100px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(0,255,200,0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+  }
+
+  /* NAV */
+  nav {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  .nav-badge {
+    background: rgba(0,255,200,0.08);
+    border: 1px solid rgba(0,255,200,0.15);
+    color: var(--accent);
+    font-size: 0.6rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.1em;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 80px 0 64px;
+    max-width: 720px;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(168,85,247,0.06);
+    border: 1px solid rgba(168,85,247,0.15);
+    color: var(--accent3);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent3);
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 .line1 { color: var(--text); display: block; }
+  .hero h1 .line2 {
+    display: block;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent3) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.8;
+    max-width: 500px;
+  }
+
+  .hero-sub strong { color: var(--text); font-weight: 600; }
+
+  /* STATS ROW */
+  .stats-row {
+    display: flex;
+    gap: 32px;
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.03em;
+  }
+
+  .stat-num span { color: var(--accent); }
+
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+
+  .filter-btn {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,255,200,0.04);
+  }
+
+  .filter-btn.active-medium { border-color: #facc15; color: #facc15; background: rgba(250,204,21,0.04); }
+  .filter-btn.active-hard { border-color: var(--accent2); color: var(--accent2); background: rgba(255,107,53,0.04); }
+  .filter-btn.active-easy { border-color: var(--accent); color: var(--accent); background: rgba(0,255,200,0.04); }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .section-count {
+    font-size: 0.7rem;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* PROBLEM GRID */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  /* PROBLEM CARD */
+  .problem-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .problem-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,255,200,0.03) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .problem-card:hover {
+    border-color: rgba(0,255,200,0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,255,200,0.1);
+  }
+
+  .problem-card:hover::before { opacity: 1; }
+
+  .problem-card.coming-soon {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .problem-card.coming-soon:hover {
+    transform: none;
+    border-color: var(--border);
+    box-shadow: none;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .card-number {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .difficulty-badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .diff-easy { background: rgba(0,255,200,0.08); border: 1px solid rgba(0,255,200,0.2); color: var(--accent); }
+  .diff-medium { background: rgba(250,204,21,0.08); border: 1px solid rgba(250,204,21,0.2); color: #facc15; }
+  .diff-hard { background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.2); color: var(--accent2); }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag {
+    background: var(--surface2);
+    border: 1px solid var(--muted2);
+    color: var(--muted);
+    font-size: 0.62rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .card-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.65rem;
+    color: var(--accent);
+  }
+
+  .card-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+  }
+
+  .card-status.locked { color: var(--muted); }
+  .card-status.locked .card-status-dot { background: var(--muted); box-shadow: none; }
+
+  .card-arrow {
+    color: var(--muted);
+    font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+
+  .problem-card:not(.coming-soon):hover .card-arrow {
+    color: var(--accent);
+    transform: translateX(4px);
+  }
+
+  /* COMING SOON OVERLAY */
+  .coming-soon-pill {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  /* FOOTER */
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  footer .footer-left {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  footer .footer-left strong { color: var(--text); }
+
+  footer .footer-right {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    nav { padding: 16px; }
+    .container { padding: 0 16px 60px; }
+    .hero { padding: 48px 0 40px; }
+    .stats-row { gap: 20px; flex-wrap: wrap; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="orb2"></div>
+
+<nav>
+  <a class="nav-logo" href="index.html">
+    <div class="logo-icon">⌬</div>
+    <span class="logo-text">DSA<span>.</span>viz</span>
+  </a>
+  <div class="nav-links">
+    <span class="nav-badge">Blake's Edition</span>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="hero">
+    <div class="hero-eyebrow">Interactive Algorithm Visualizer</div>
+    <h1>
+      <span class="line1">Learn DSA by</span>
+      <span class="line2">Seeing It.</span>
+    </h1>
+    <p class="hero-sub">
+      Every problem I've gotten stuck on — visualized, animated, and explained.
+      <strong>Step through the algorithm</strong>, watch the code highlight in real-time,
+      and actually understand what's happening.
+    </p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-num" id="totalCount"><span>0</span></div>
+      <div class="stat-label">Problems</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num"><span id="liveCount">1</span></div>
+      <div class="stat-label">Live Now</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num"><span style="color:var(--accent3)">∞</span></div>
+      <div class="stat-label">More Coming</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <span class="filter-label">Filter:</span>
+    <button class="filter-btn active" data-filter="all" onclick="filterCards(this, 'all')">All</button>
+    <button class="filter-btn" data-filter="Easy" onclick="filterCards(this, 'Easy')">Easy</button>
+    <button class="filter-btn" data-filter="Medium" onclick="filterCards(this, 'Medium')">Medium</button>
+    <button class="filter-btn" data-filter="Hard" onclick="filterCards(this, 'Hard')">Hard</button>
+    <button class="filter-btn" data-filter="Array" onclick="filterCards(this, 'Array')">Array</button>
+    <button class="filter-btn" data-filter="Matrix" onclick="filterCards(this, 'Matrix')">Matrix</button>
+    <button class="filter-btn" data-filter="Tree" onclick="filterCards(this, 'Tree')">Tree</button>
+    <button class="filter-btn" data-filter="Graph" onclick="filterCards(this, 'Graph')">Graph</button>
+    <button class="filter-btn" data-filter="DP" onclick="filterCards(this, 'DP')">DP</button>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">All Problems</div>
+    <div class="section-count" id="visibleCount">1 visible</div>
+  </div>
+
+  <div class="problem-grid" id="problemGrid">
+
+    <!-- SPIRAL MATRIX — LIVE -->
+    <a class="problem-card" href="problems/spiral-matrix/index.html"
+       data-difficulty="Medium" data-tags="Array,Matrix,Simulation">
+      <div class="card-top">
+        <div>
+          <div class="card-number">#054</div>
+          <div class="card-title">Spiral Matrix</div>
+        </div>
+        <span class="difficulty-badge diff-medium">Medium</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">Array</span>
+        <span class="tag">Matrix</span>
+        <span class="tag">Simulation</span>
+      </div>
+      <div class="card-footer">
+        <div class="card-status">
+          <div class="card-status-dot"></div>
+          Live
+        </div>
+        <span class="card-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- PLACEHOLDER CARDS — COMING SOON -->
+    <div class="problem-card coming-soon" data-difficulty="Easy" data-tags="Array,Two Pointers">
+      <span class="coming-soon-pill">Coming Soon</span>
+      <div class="card-top">
+        <div>
+          <div class="card-number">#001</div>
+          <div class="card-title">Two Sum</div>
+        </div>
+        <span class="difficulty-badge diff-easy">Easy</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">Array</span>
+        <span class="tag">Hash Map</span>
+      </div>
+      <div class="card-footer">
+        <div class="card-status locked">
+          <div class="card-status-dot"></div>
+          Not yet
+        </div>
+        <span class="card-arrow">→</span>
+      </div>
+    </div>
+
+    <div class="problem-card coming-soon" data-difficulty="Medium" data-tags="Array,Two Pointers">
+      <span class="coming-soon-pill">Coming Soon</span>
+      <div class="card-top">
+        <div>
+          <div class="card-number">#011</div>
+          <div class="card-title">Container With Most Water</div>
+        </div>
+        <span class="difficulty-badge diff-medium">Medium</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">Array</span>
+        <span class="tag">Two Pointers</span>
+        <span class="tag">Greedy</span>
+      </div>
+      <div class="card-footer">
+        <div class="card-status locked">
+          <div class="card-status-dot"></div>
+          Not yet
+        </div>
+        <span class="card-arrow">→</span>
+      </div>
+    </div>
+
+    <div class="problem-card coming-soon" data-difficulty="Hard" data-tags="Array,Two Pointers">
+      <span class="coming-soon-pill">Coming Soon</span>
+      <div class="card-top">
+        <div>
+          <div class="card-number">#042</div>
+          <div class="card-title">Trapping Rain Water</div>
+        </div>
+        <span class="difficulty-badge diff-hard">Hard</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">Array</span>
+        <span class="tag">Two Pointers</span>
+        <span class="tag">Stack</span>
+      </div>
+      <div class="card-footer">
+        <div class="card-status locked">
+          <div class="card-status-dot"></div>
+          Not yet
+        </div>
+        <span class="card-arrow">→</span>
+      </div>
+    </div>
+
+    <div class="problem-card coming-soon" data-difficulty="Medium" data-tags="Tree,BFS">
+      <span class="coming-soon-pill">Coming Soon</span>
+      <div class="card-top">
+        <div>
+          <div class="card-number">#102</div>
+          <div class="card-title">Binary Tree Level Order Traversal</div>
+        </div>
+        <span class="difficulty-badge diff-medium">Medium</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">Tree</span>
+        <span class="tag">BFS</span>
+        <span class="tag">Queue</span>
+      </div>
+      <div class="card-footer">
+        <div class="card-status locked">
+          <div class="card-status-dot"></div>
+          Not yet
+        </div>
+        <span class="card-arrow">→</span>
+      </div>
+    </div>
+
+    <div class="problem-card coming-soon" data-difficulty="Medium" data-tags="Graph,BFS">
+      <span class="coming-soon-pill">Coming Soon</span>
+      <div class="card-top">
+        <div>
+          <div class="card-number">#200</div>
+          <div class="card-title">Number of Islands</div>
+        </div>
+        <span class="difficulty-badge diff-medium">Medium</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">Graph</span>
+        <span class="tag">BFS</span>
+        <span class="tag">Matrix</span>
+      </div>
+      <div class="card-footer">
+        <div class="card-status locked">
+          <div class="card-status-dot"></div>
+          Not yet
+        </div>
+        <span class="card-arrow">→</span>
+      </div>
+    </div>
+
+    <div class="problem-card coming-soon" data-difficulty="Medium" data-tags="DP,Array">
+      <span class="coming-soon-pill">Coming Soon</span>
+      <div class="card-top">
+        <div>
+          <div class="card-number">#322</div>
+          <div class="card-title">Coin Change</div>
+        </div>
+        <span class="difficulty-badge diff-medium">Medium</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">DP</span>
+        <span class="tag">Array</span>
+        <span class="tag">BFS</span>
+      </div>
+      <div class="card-footer">
+        <div class="card-status locked">
+          <div class="card-status-dot"></div>
+          Not yet
+        </div>
+        <span class="card-arrow">→</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left">
+    <strong>DSA.viz</strong> — built one stuck problem at a time
+  </div>
+  <div class="footer-right">github pages · open source</div>
+</footer>
+
+<script>
+  // Count total
+  const allCards = document.querySelectorAll('.problem-card');
+  document.getElementById('totalCount').innerHTML = `<span>${allCards.length}</span>`;
+  document.getElementById('visibleCount').textContent = `${allCards.length} visible`;
+
+  function filterCards(btn, filter) {
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.remove('active', 'active-easy', 'active-medium', 'active-hard');
+    });
+    if (filter === 'Easy') btn.classList.add('active-easy');
+    else if (filter === 'Medium') btn.classList.add('active-medium');
+    else if (filter === 'Hard') btn.classList.add('active-hard');
+    else btn.classList.add('active');
+
+    let visible = 0;
+    allCards.forEach(card => {
+      const diff = card.dataset.difficulty || '';
+      const tags = card.dataset.tags || '';
+      const show = filter === 'all' || diff === filter || tags.includes(filter);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('visibleCount').textContent = `${visible} visible`;
+  }
+</script>
+</body>
+</html>

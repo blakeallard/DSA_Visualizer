@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spiral Matrix Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #00ffc8;
+    --accent2: #ff6b35;
+    --accent3: #a855f7;
+    --text: #e2e8f0;
+    --muted: #4a5568;
+    --cell-size: 64px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,200,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,200,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  .back-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .back-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: var(--accent); }
+  .back-link .arrow { transition: transform 0.15s; }
+  .back-link:hover .arrow { transform: translateX(-3px); }
+
+  .site-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .site-logo span { color: var(--accent); }
+
+  header {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .title-block h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent3) 60%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .title-block .subtitle {
+    color: var(--muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  .badge {
+    background: rgba(0,255,200,0.08);
+    border: 1px solid rgba(0,255,200,0.2);
+    color: var(--accent);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+  }
+
+  /* Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* Matrix Controls */
+  .size-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .size-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .size-group label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .size-btn {
+    width: 28px;
+    height: 28px;
+    background: var(--border);
+    border: 1px solid #2a2a3e;
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .size-btn:hover { background: #2a2a3e; border-color: var(--accent); color: var(--accent); }
+
+  .size-display {
+    font-size: 0.85rem;
+    color: var(--accent);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  /* Matrix Grid */
+  .matrix-wrap {
+    overflow: auto;
+    padding-bottom: 8px;
+  }
+
+  .matrix-grid {
+    display: inline-grid;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    position: relative;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .cell input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    cursor: text;
+  }
+
+  .cell.active {
+    background: rgba(0,255,200,0.06);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 20px rgba(0,255,200,0.15);
+    transform: scale(1.05);
+    z-index: 2;
+  }
+
+  .cell.visited {
+    background: rgba(168,85,247,0.08);
+    border-color: rgba(168,85,247,0.3);
+  }
+
+  .cell.path {
+    background: rgba(0,255,200,0.04);
+    border-color: rgba(0,255,200,0.15);
+  }
+
+  .cell .order-badge {
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    font-size: 0.55rem;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .cell.visited .order-badge { opacity: 1; }
+
+  /* Spiral path arrow overlay */
+  .cell.active::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 8px;
+    background: rgba(0,255,200,0.05);
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Controls */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .btn-primary:hover { background: #00e6b5; box-shadow: 0 0 20px rgba(0,255,200,0.3); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-danger {
+    background: transparent;
+    border: 1px solid #2a1a1a;
+    color: #ff6b6b;
+  }
+  .btn-danger:hover { border-color: #ff6b6b; background: rgba(255,107,107,0.05); }
+
+  /* Speed slider */
+  .speed-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .speed-row label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0,255,200,0.4);
+  }
+
+  /* Sidebar */
+  .output-section { margin-bottom: 20px; }
+
+  .output-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .output-array {
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    min-height: 52px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-content: flex-start;
+  }
+
+  .arr-item {
+    background: rgba(0,255,200,0.06);
+    border: 1px solid rgba(0,255,200,0.15);
+    color: var(--accent);
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    animation: pop-in 0.2s ease-out;
+  }
+
+  @keyframes pop-in {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  /* Code section */
+  .code-block {
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .code-block pre {
+    white-space: pre;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .kw { color: #ff6b9d; }
+  .fn { color: #7dd3fc; }
+  .var { color: var(--accent); }
+  .num { color: var(--accent2); }
+  .cm { color: #3a3a5c; font-style: italic; }
+
+  .code-section {
+    display: block;
+    border-radius: 4px;
+    margin: 1px -8px;
+    padding: 1px 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+
+  .code-section.highlight-right {
+    background: rgba(0, 255, 200, 0.09);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .code-section.highlight-right .cm { color: var(--accent); opacity: 0.8; }
+
+  .code-section.highlight-down {
+    background: rgba(168, 85, 247, 0.09);
+    box-shadow: inset 3px 0 0 var(--accent3);
+  }
+  .code-section.highlight-down .cm { color: var(--accent3); opacity: 0.8; }
+
+  .code-section.highlight-left {
+    background: rgba(255, 107, 53, 0.09);
+    box-shadow: inset 3px 0 0 var(--accent2);
+  }
+  .code-section.highlight-left .cm { color: var(--accent2); opacity: 0.8; }
+
+  .code-section.highlight-up {
+    background: rgba(125, 211, 252, 0.09);
+    box-shadow: inset 3px 0 0 #7dd3fc;
+  }
+  .code-section.highlight-up .cm { color: #7dd3fc; opacity: 0.8; }
+
+  /* Step counter */
+  .step-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .step-info .step-num {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .step-info .step-val {
+    font-size: 0.85rem;
+    color: var(--accent3);
+    font-weight: 600;
+  }
+
+  /* Preset buttons */
+  .presets {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .preset-btn {
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .preset-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s;
+  }
+  .status-dot.running { background: var(--accent); animation: blink 1s ease-in-out infinite; }
+  .status-dot.done { background: var(--accent2); }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .status-text {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* Direction indicator */
+  .dir-indicator {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .dir-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .dir-item.active-dir {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,255,200,0.05);
+  }
+
+  .dir-arrow { font-size: 0.9rem; }
+
+  /* Complexity badge */
+  .complexity-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .complexity-chip {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+  }
+
+  .time-chip {
+    background: rgba(0,255,200,0.06);
+    border: 1px solid rgba(0,255,200,0.15);
+    color: var(--accent);
+  }
+
+  .space-chip {
+    background: rgba(168,85,247,0.06);
+    border: 1px solid rgba(168,85,247,0.2);
+    color: var(--accent3);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="back-nav">
+    <a class="back-link" href="../../index.html">
+      <span class="arrow">←</span> All Problems
+    </a>
+    <a class="site-logo" href="../../index.html">DSA<span>.</span>viz</a>
+  </div>
+  <header>
+    <div class="title-block">
+      <div class="badge">Algorithm Visualizer</div>
+      <h1>Spiral Matrix</h1>
+      <div class="subtitle">O(m·n) time · O(1) space · Boundary pointers</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Left: Matrix -->
+    <div>
+      <div class="card">
+        <div class="card-label">Matrix Input</div>
+
+        <div class="size-controls">
+          <div class="size-group">
+            <label>ROWS</label>
+            <button class="size-btn" onclick="changeSize('rows', -1)">−</button>
+            <span class="size-display" id="rowDisplay">3</span>
+            <button class="size-btn" onclick="changeSize('rows', 1)">+</button>
+          </div>
+          <div class="size-group">
+            <label>COLS</label>
+            <button class="size-btn" onclick="changeSize('cols', -1)">−</button>
+            <span class="size-display" id="colDisplay">3</span>
+            <button class="size-btn" onclick="changeSize('cols', 1)">+</button>
+          </div>
+          <div class="presets">
+            <button class="preset-btn" onclick="loadPreset(0)">2×2</button>
+            <button class="preset-btn" onclick="loadPreset(1)">3×3</button>
+            <button class="preset-btn" onclick="loadPreset(2)">3×4</button>
+            <button class="preset-btn" onclick="loadPreset(3)">4×4</button>
+            <button class="preset-btn" onclick="fillRandom()">Random</button>
+          </div>
+        </div>
+
+        <div class="dir-indicator" id="dirIndicator">
+          <div class="dir-item" id="dir-right"><span class="dir-arrow">→</span> Right</div>
+          <div class="dir-item" id="dir-down"><span class="dir-arrow">↓</span> Down</div>
+          <div class="dir-item" id="dir-left"><span class="dir-arrow">←</span> Left</div>
+          <div class="dir-item" id="dir-up"><span class="dir-arrow">↑</span> Up</div>
+        </div>
+
+        <div class="matrix-wrap">
+          <div class="matrix-grid" id="matrixGrid"></div>
+        </div>
+
+        <div class="speed-row">
+          <label>Speed</label>
+          <input type="range" id="speedSlider" min="1" max="10" value="5">
+          <span style="font-size:0.7rem; color:var(--muted)" id="speedLabel">5</span>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="runBtn" onclick="startAnimation()">▶ Run</button>
+          <button class="btn btn-secondary" onclick="stepForward()" id="stepBtn">Step</button>
+          <button class="btn btn-danger" onclick="resetAll()">↺ Reset</button>
+        </div>
+
+        <div class="status-bar">
+          <div class="status-dot" id="statusDot"></div>
+          <span class="status-text" id="statusText">Ready — click Run or Step</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Output + Code -->
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div class="card">
+        <div class="output-section">
+          <div class="output-label">Spiral Output</div>
+          <div class="output-array" id="outputArray">
+            <span style="color:var(--muted); font-size:0.75rem;">— waiting for input —</span>
+          </div>
+        </div>
+
+        <div class="step-info">
+          <span class="step-num">Current Step</span>
+          <span class="step-val" id="stepCounter">0 / 0</span>
+        </div>
+
+        <div class="complexity-row">
+          <span class="complexity-chip time-chip">⏱ O(m·n) time</span>
+          <span class="complexity-chip space-chip">◻ O(1) space</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Solution Code</div>
+        <div class="code-block">
+<pre><span class="kw">class</span> <span class="fn">Solution</span> {
+<span class="kw">public</span>:
+    vector&lt;<span class="kw">int</span>&gt; <span class="fn">spiralOrder</span>(
+        vector&lt;vector&lt;<span class="kw">int</span>&gt;&gt;&amp; matrix
+    ) {
+        vector&lt;<span class="kw">int</span>&gt; <span class="var">res</span>;
+        <span class="kw">int</span> <span class="var">top</span> = <span class="num">0</span>, <span class="var">bot</span> = matrix.<span class="fn">size</span>() - <span class="num">1</span>;
+        <span class="kw">int</span> <span class="var">left</span> = <span class="num">0</span>, <span class="var">right</span> = matrix[<span class="num">0</span>].<span class="fn">size</span>() - <span class="num">1</span>;
+
+        <span class="kw">while</span> (<span class="var">left</span> &lt;= <span class="var">right</span> &amp;&amp; <span class="var">top</span> &lt;= <span class="var">bot</span>) {
+<span class="code-section" id="code-right">            <span class="cm">// → top row</span>
+            <span class="kw">for</span> (<span class="kw">int</span> c = <span class="var">left</span>; c &lt;= <span class="var">right</span>; c++)
+                <span class="var">res</span>.<span class="fn">push_back</span>(matrix[<span class="var">top</span>][c]);
+            <span class="var">top</span>++;
+</span><span class="code-section" id="code-down">            <span class="cm">// ↓ right col</span>
+            <span class="kw">for</span> (<span class="kw">int</span> r = <span class="var">top</span>; r &lt;= <span class="var">bot</span>; r++)
+                <span class="var">res</span>.<span class="fn">push_back</span>(matrix[r][<span class="var">right</span>]);
+            <span class="var">right</span>--;
+</span><span class="code-section" id="code-left">            <span class="cm">// ← bottom row</span>
+            <span class="kw">if</span> (<span class="var">top</span> &lt;= <span class="var">bot</span>) {
+                <span class="kw">for</span> (<span class="kw">int</span> c = <span class="var">right</span>; c &gt;= <span class="var">left</span>; c--)
+                    <span class="var">res</span>.<span class="fn">push_back</span>(matrix[<span class="var">bot</span>][c]);
+                <span class="var">bot</span>--;
+            }
+</span><span class="code-section" id="code-up">            <span class="cm">// ↑ left col</span>
+            <span class="kw">if</span> (<span class="var">left</span> &lt;= <span class="var">right</span>) {
+                <span class="kw">for</span> (<span class="kw">int</span> r = <span class="var">bot</span>; r &gt;= <span class="var">top</span>; r--)
+                    <span class="var">res</span>.<span class="fn">push_back</span>(matrix[r][<span class="var">left</span>]);
+                <span class="var">left</span>++;
+            }
+</span>        }
+        <span class="kw">return</span> <span class="var">res</span>;
+    }
+};</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PRESETS = [
+  { rows: 2, cols: 2, data: [[1,2],[3,4]] },
+  { rows: 3, cols: 3, data: [[1,2,3],[4,5,6],[7,8,9]] },
+  { rows: 3, cols: 4, data: [[1,2,3,4],[5,6,7,8],[9,10,11,12]] },
+  { rows: 4, cols: 4, data: [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]] },
+];
+
+let rows = 3, cols = 3;
+let animTimer = null;
+let steps = []; // [{row, col, dir}]
+let currentStep = 0;
+let isRunning = false;
+
+function getSpeed() {
+  const v = parseInt(document.getElementById('speedSlider').value);
+  return Math.round(1200 / v);
+}
+
+document.getElementById('speedSlider').addEventListener('input', function() {
+  document.getElementById('speedLabel').textContent = this.value;
+});
+
+function getMatrix() {
+  const grid = [];
+  for (let r = 0; r < rows; r++) {
+    grid.push([]);
+    for (let c = 0; c < cols; c++) {
+      const inp = document.getElementById(`cell-${r}-${c}`);
+      grid[r].push(parseInt(inp.value) || 0);
+    }
+  }
+  return grid;
+}
+
+function buildGrid() {
+  const g = document.getElementById('matrixGrid');
+  g.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+  g.innerHTML = '';
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = `cell-wrap-${r}-${c}`;
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.id = `cell-${r}-${c}`;
+      inp.value = r * cols + c + 1;
+      inp.addEventListener('change', resetAll);
+      cell.appendChild(inp);
+      const badge = document.createElement('span');
+      badge.className = 'order-badge';
+      badge.id = `badge-${r}-${c}`;
+      cell.appendChild(badge);
+      g.appendChild(cell);
+    }
+  }
+  document.getElementById('rowDisplay').textContent = rows;
+  document.getElementById('colDisplay').textContent = cols;
+  resetAll();
+}
+
+function computeSteps(matrix) {
+  const steps = [];
+  let top = 0, bot = matrix.length - 1;
+  let left = 0, right = matrix[0].length - 1;
+  while (left <= right && top <= bot) {
+    for (let c = left; c <= right; c++) steps.push({r: top, c, dir: 'right', val: matrix[top][c]});
+    top++;
+    for (let r = top; r <= bot; r++) steps.push({r, c: right, dir: 'down', val: matrix[r][right]});
+    right--;
+    if (top <= bot) {
+      for (let c = right; c >= left; c--) steps.push({r: bot, c, dir: 'left', val: matrix[bot][c]});
+      bot--;
+    }
+    if (left <= right) {
+      for (let r = bot; r >= top; r--) steps.push({r, c: left, dir: 'up', val: matrix[r][left]});
+      left++;
+    }
+  }
+  return steps;
+}
+
+function applyStep(idx) {
+  const s = steps[idx];
+  // Clear active
+  document.querySelectorAll('.cell.active').forEach(el => el.classList.remove('active'));
+  // Mark visited
+  const cell = document.getElementById(`cell-wrap-${s.r}-${s.c}`);
+  cell.classList.add('active');
+  setTimeout(() => {
+    cell.classList.remove('active');
+    cell.classList.add('visited');
+    document.getElementById(`badge-${s.r}-${s.c}`).textContent = idx + 1;
+  }, getSpeed() * 0.6);
+
+  // Output
+  const arr = document.getElementById('outputArray');
+  if (idx === 0) arr.innerHTML = '';
+  const item = document.createElement('span');
+  item.className = 'arr-item';
+  item.textContent = s.val;
+  arr.appendChild(item);
+
+  // Direction indicator
+  ['right','down','left','up'].forEach(d => {
+    document.getElementById(`dir-${d}`).classList.toggle('active-dir', d === s.dir);
+  });
+
+  // Code highlighting — clear all, then activate matching section
+  ['right','down','left','up'].forEach(d => {
+    const el = document.getElementById(`code-${d}`);
+    el.classList.remove('highlight-right','highlight-down','highlight-left','highlight-up');
+  });
+  const activeCode = document.getElementById(`code-${s.dir}`);
+  if (activeCode) {
+    activeCode.classList.add(`highlight-${s.dir}`);
+    activeCode.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  // Step counter
+  document.getElementById('stepCounter').textContent = `${idx + 1} / ${steps.length}`;
+}
+
+function startAnimation() {
+  if (isRunning) {
+    clearInterval(animTimer);
+    isRunning = false;
+    document.getElementById('runBtn').textContent = '▶ Run';
+    setStatus('paused', 'Paused');
+    return;
+  }
+  if (currentStep === 0) {
+    const matrix = getMatrix();
+    steps = computeSteps(matrix);
+    document.getElementById('outputArray').innerHTML = '';
+  }
+  if (currentStep >= steps.length) { resetAll(); return; }
+
+  isRunning = true;
+  document.getElementById('runBtn').textContent = '⏸ Pause';
+  setStatus('running', 'Animating spiral traversal...');
+
+  animTimer = setInterval(() => {
+    if (currentStep >= steps.length) {
+      clearInterval(animTimer);
+      isRunning = false;
+      document.getElementById('runBtn').textContent = '▶ Run';
+      setStatus('done', `Complete — ${steps.length} elements traversed`);
+      document.querySelectorAll('.cell.active').forEach(el => el.classList.remove('active'));
+      return;
+    }
+    applyStep(currentStep);
+    currentStep++;
+  }, getSpeed());
+}
+
+function stepForward() {
+  if (isRunning) return;
+  if (currentStep === 0) {
+    const matrix = getMatrix();
+    steps = computeSteps(matrix);
+    document.getElementById('outputArray').innerHTML = '';
+  }
+  if (currentStep >= steps.length) return;
+  applyStep(currentStep);
+  currentStep++;
+  if (currentStep >= steps.length) {
+    setStatus('done', `Complete — ${steps.length} elements traversed`);
+  } else {
+    setStatus('', `Step ${currentStep} of ${steps.length}`);
+  }
+}
+
+function resetAll() {
+  clearInterval(animTimer);
+  isRunning = false;
+  currentStep = 0;
+  steps = [];
+  document.getElementById('runBtn').textContent = '▶ Run';
+  document.getElementById('outputArray').innerHTML = '<span style="color:var(--muted); font-size:0.75rem;">— waiting for input —</span>';
+  document.getElementById('stepCounter').textContent = '0 / 0';
+  document.querySelectorAll('.cell').forEach(el => {
+    el.classList.remove('active', 'visited', 'path');
+  });
+  document.querySelectorAll('.order-badge').forEach(el => el.textContent = '');
+  ['right','down','left','up'].forEach(d => {
+    document.getElementById(`dir-${d}`).classList.remove('active-dir');
+    const el = document.getElementById(`code-${d}`);
+    if (el) el.classList.remove('highlight-right','highlight-down','highlight-left','highlight-up');
+  });
+  setStatus('', 'Ready — click Run or Step');
+}
+
+function setStatus(type, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (type ? ` ${type}` : '');
+  document.getElementById('statusText').textContent = text;
+}
+
+function changeSize(dim, delta) {
+  if (dim === 'rows') rows = Math.max(1, Math.min(10, rows + delta));
+  else cols = Math.max(1, Math.min(10, cols + delta));
+  buildGrid();
+}
+
+function loadPreset(idx) {
+  const p = PRESETS[idx];
+  rows = p.rows; cols = p.cols;
+  buildGrid();
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      document.getElementById(`cell-${r}-${c}`).value = p.data[r][c];
+}
+
+function fillRandom() {
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      document.getElementById(`cell-${r}-${c}`).value = Math.floor(Math.random() * 99) - 10;
+}
+
+// Init
+buildGrid();
+</script>
+</body>
+</html>
