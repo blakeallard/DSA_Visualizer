@@ -485,7 +485,7 @@
   <header>
     <div class="badge">Algorithm Visualizer</div>
     <h1>Search a 2D Matrix</h1>
-    <div class="subtitle">O(log(m·n)) time · O(1) space · Double Binary Search</div>
+    <div class="subtitle">O(log(m·n)) time · O(1) space · Single Binary Search (Flat Index)</div>
   </header>
 
   <div class="layout">
@@ -532,41 +532,32 @@
       <div class="card">
         <div class="card-label">Algorithm State</div>
 
-        <div class="phase-indicator">
-          <div class="phase-chip" id="phase1">Phase 1: Row Search</div>
-          <div class="phase-chip" id="phase2">Phase 2: Col Search</div>
-        </div>
-
         <div class="vars-grid">
           <div class="var-box">
-            <div class="var-name">Row Lo</div>
-            <div class="var-val" id="varRowLo">—</div>
+            <div class="var-name">left (flat index)</div>
+            <div class="var-val" id="varLeft">—</div>
           </div>
           <div class="var-box">
-            <div class="var-name">Row Hi</div>
-            <div class="var-val" id="varRowHi">—</div>
+            <div class="var-name">right (flat index)</div>
+            <div class="var-val" id="varRight">—</div>
           </div>
           <div class="var-box">
-            <div class="var-name">Row Mid</div>
-            <div class="var-val" id="varRowMid">—</div>
+            <div class="var-name">mid (flat index)</div>
+            <div class="var-val" id="varMid">—</div>
           </div>
           <div class="var-box">
-            <div class="var-name">Target Row</div>
-            <div class="var-val green" id="varTargetRow">—</div>
+            <div class="var-name">value at mid</div>
+            <div class="var-val" style="color:var(--accent3)" id="varValue">—</div>
           </div>
           <div class="var-box">
-            <div class="var-name">Col Lo</div>
-            <div class="var-val yellow" id="varColLo">—</div>
+            <div class="var-name">row = mid / cols</div>
+            <div class="var-val yellow" id="varRow">—</div>
           </div>
           <div class="var-box">
-            <div class="var-name">Col Hi</div>
-            <div class="var-val yellow" id="varColHi">—</div>
+            <div class="var-name">col = mid % cols</div>
+            <div class="var-val yellow" id="varCol">—</div>
           </div>
-          <div class="var-box">
-            <div class="var-name">Col Mid</div>
-            <div class="var-val yellow" id="varColMid">—</div>
-          </div>
-          <div class="var-box">
+          <div class="var-box" style="grid-column: span 2">
             <div class="var-name">Target</div>
             <div class="var-val" style="color:var(--yellow)" id="varTarget">—</div>
           </div>
@@ -588,29 +579,35 @@
 <pre><span class="kw">class</span> <span class="fn">Solution</span> {
 <span class="kw">public</span>:
     <span class="tp">bool</span> <span class="fn">searchMatrix</span>(vector&lt;vector&lt;<span class="tp">int</span>&gt;&gt;&amp; matrix, <span class="tp">int</span> target) {
-        <span class="tp">int</span> <span class="var">rows</span> = matrix.<span class="fn">size</span>(), <span class="var">cols</span> = matrix[<span class="num">0</span>].<span class="fn">size</span>();
 
-<span class="code-section" id="code-row-search">        <span class="cm">// Phase 1: Binary search to find the correct row</span>
-        <span class="tp">int</span> <span class="var">lo</span> = <span class="num">0</span>, <span class="var">hi</span> = <span class="var">rows</span> - <span class="num">1</span>;
-        <span class="kw">while</span> (<span class="var">lo</span> &lt;= <span class="var">hi</span>) {
-            <span class="tp">int</span> <span class="var">mid</span> = (<span class="var">lo</span> + <span class="var">hi</span>) / <span class="num">2</span>;
-            <span class="kw">if</span> (target &lt; matrix[<span class="var">mid</span>][<span class="num">0</span>])        <span class="var">hi</span> = <span class="var">mid</span> - <span class="num">1</span>;   <span class="cm">// target above this row</span>
-            <span class="kw">else if</span> (target &gt; matrix[<span class="var">mid</span>][<span class="var">cols</span>-<span class="num">1</span>]) <span class="var">lo</span> = <span class="var">mid</span> + <span class="num">1</span>;   <span class="cm">// target below this row</span>
-            <span class="kw">else</span> { <span class="var">lo</span> = <span class="var">mid</span>; <span class="kw">break</span>; }                           <span class="cm">// target in this row!</span>
-        }
-        <span class="kw">if</span> (<span class="var">lo</span> &gt; <span class="var">hi</span>) <span class="kw">return false</span>;   <span class="cm">// no valid row found</span>
-        <span class="tp">int</span> <span class="var">targetRow</span> = <span class="var">lo</span>;
+        <span class="tp">int</span> <span class="var">rows</span>  = matrix.<span class="fn">size</span>();
+        <span class="tp">int</span> <span class="var">cols</span>  = matrix[<span class="num">0</span>].<span class="fn">size</span>();
+        <span class="tp">int</span> <span class="var">left</span>  = <span class="num">0</span>;
+        <span class="tp">int</span> <span class="var">right</span> = (<span class="var">rows</span> * <span class="var">cols</span>) - <span class="num">1</span>;
+
+        <span class="cm">// Treat the 2D matrix as a flat sorted array</span>
+        <span class="kw">while</span> (<span class="var">left</span> &lt;= <span class="var">right</span>) {
+<span class="code-section" id="code-mid">            <span class="tp">int</span> <span class="var">mid</span>   = <span class="var">left</span> + (<span class="var">right</span> - <span class="var">left</span>) / <span class="num">2</span>;
+            <span class="tp">int</span> <span class="var">row</span>   = <span class="var">mid</span> / <span class="var">cols</span>;   <span class="cm">// convert flat index → row</span>
+            <span class="tp">int</span> <span class="var">col</span>   = <span class="var">mid</span> % <span class="var">cols</span>;   <span class="cm">// convert flat index → col</span>
+            <span class="tp">int</span> <span class="var">value</span> = matrix[<span class="var">row</span>][<span class="var">col</span>];
 </span>
-<span class="code-section" id="code-col-search">        <span class="cm">// Phase 2: Binary search within that row</span>
-        <span class="var">lo</span> = <span class="num">0</span>; <span class="var">hi</span> = <span class="var">cols</span> - <span class="num">1</span>;
-        <span class="kw">while</span> (<span class="var">lo</span> &lt;= <span class="var">hi</span>) {
-            <span class="tp">int</span> <span class="var">mid</span> = (<span class="var">lo</span> + <span class="var">hi</span>) / <span class="num">2</span>;
-            <span class="kw">if</span>      (target &lt; matrix[<span class="var">targetRow</span>][<span class="var">mid</span>])  <span class="var">hi</span> = <span class="var">mid</span> - <span class="num">1</span>;
-            <span class="kw">else if</span> (target &gt; matrix[<span class="var">targetRow</span>][<span class="var">mid</span>])  <span class="var">lo</span> = <span class="var">mid</span> + <span class="num">1</span>;
-            <span class="kw">else return true</span>;   <span class="cm">// found!</span>
-        }
+<span class="code-section" id="code-found">            <span class="kw">if</span> (<span class="var">value</span> == target)
+            {
+                <span class="kw">return true</span>;   <span class="cm">// found!</span>
+            }
 </span>
-<span class="code-section" id="code-return-false">        <span class="kw">return false</span>;   <span class="cm">// not found in target row</span>
+<span class="code-section" id="code-go-right">            <span class="kw">if</span> (<span class="var">value</span> &lt; target)
+            {
+                <span class="var">left</span> = <span class="var">mid</span> + <span class="num">1</span>;   <span class="cm">// target is to the right</span>
+            }
+</span>
+<span class="code-section" id="code-go-left">            <span class="kw">else</span>
+            {
+                <span class="var">right</span> = <span class="var">mid</span> - <span class="num">1</span>;   <span class="cm">// target is to the left</span>
+            }
+</span>        }
+<span class="code-section" id="code-return-false">        <span class="kw">return false</span>;   <span class="cm">// not found</span>
 </span>    }
 };</pre>
       </div>
@@ -620,18 +617,11 @@
 
 <script>
 const PRESETS = [
-  {
-    matrix: [[1,2,4,8],[10,11,12,13],[14,20,30,40]],
-    target: 10
-  },
-  {
-    matrix: [[1,2,4,8],[10,11,12,13],[14,20,30,40]],
-    target: 15
-  }
+  { matrix: [[1,2,4,8],[10,11,12,13],[14,20,30,40]], target: 10 },
+  { matrix: [[1,2,4,8],[10,11,12,13],[14,20,30,40]], target: 15 }
 ];
 
 let matrix = PRESETS[0].matrix;
-let target = 10;
 let steps = [];
 let currentStep = 0;
 let animTimer = null;
@@ -647,8 +637,7 @@ document.getElementById('speedSlider').addEventListener('input', function() {
 
 function loadPreset(idx) {
   matrix = PRESETS[idx].matrix.map(r => [...r]);
-  target = PRESETS[idx].target;
-  document.getElementById('targetInput').value = target;
+  document.getElementById('targetInput').value = PRESETS[idx].target;
   buildGrid();
   resetAll();
 }
@@ -664,14 +653,11 @@ function fillRandom() {
       val += Math.floor(Math.random() * 8) + 1;
     }
   }
-  // pick a random target - 50% chance it exists
   const flat = matrix.flat();
-  if (Math.random() < 0.5) {
-    target = flat[Math.floor(Math.random() * flat.length)];
-  } else {
-    target = Math.floor(Math.random() * (flat[flat.length-1] - flat[0])) + flat[0];
-  }
-  document.getElementById('targetInput').value = target;
+  const t = Math.random() < 0.5
+    ? flat[Math.floor(Math.random() * flat.length)]
+    : Math.floor(Math.random() * (flat[flat.length-1] - flat[0])) + flat[0];
+  document.getElementById('targetInput').value = t;
   buildGrid();
   resetAll();
 }
@@ -690,79 +676,49 @@ function buildGrid() {
       g.appendChild(cell);
     }
   }
-  document.getElementById('varTarget').textContent = target;
+  document.getElementById('varTarget').textContent = document.getElementById('targetInput').value;
 }
 
 function clearCellClasses() {
-  const rows = matrix.length, cols = matrix[0].length;
-  for (let r = 0; r < rows; r++)
-    for (let c = 0; c < cols; c++) {
-      const el = document.getElementById(`cell-${r}-${c}`);
-      el.className = 'cell';
-    }
+  matrix.forEach((row, r) => row.forEach((_, c) => {
+    document.getElementById(`cell-${r}-${c}`).className = 'cell';
+  }));
 }
 
-// Build all steps for the animation
+// Build all animation steps
 function computeSteps() {
   const steps = [];
   const rows = matrix.length, cols = matrix[0].length;
-  const t = parseInt(document.getElementById('targetInput').value) || 0;
+  const target = parseInt(document.getElementById('targetInput').value) || 0;
+  let left = 0, right = rows * cols - 1;
 
-  // Phase 1: row binary search
-  let lo = 0, hi = rows - 1;
-  while (lo <= hi) {
-    const mid = Math.floor((lo + hi) / 2);
-    steps.push({
-      phase: 1,
-      rowLo: lo, rowHi: hi, rowMid: mid,
-      colLo: null, colHi: null, colMid: null,
-      targetRow: null,
-      msg: `Phase 1 — Row binary search: lo=${lo}, hi=${hi}, mid=${mid} → row[${mid}] = [${matrix[mid][0]}…${matrix[mid][cols-1]}]`
-    });
-    if (t < matrix[mid][0]) {
-      steps.push({ phase: 1, rowLo: lo, rowHi: mid-1, rowMid: mid, colLo: null, colHi: null, colMid: null, targetRow: null, msg: `${t} < ${matrix[mid][0]} (first of row ${mid}) → search upper half, hi = ${mid-1}` });
-      hi = mid - 1;
-    } else if (t > matrix[mid][cols-1]) {
-      steps.push({ phase: 1, rowLo: mid+1, rowHi: hi, rowMid: mid, colLo: null, colHi: null, colMid: null, targetRow: null, msg: `${t} > ${matrix[mid][cols-1]} (last of row ${mid}) → search lower half, lo = ${mid+1}` });
-      lo = mid + 1;
-    } else {
-      steps.push({ phase: 1, rowLo: lo, rowHi: hi, rowMid: mid, colLo: null, colHi: null, colMid: null, targetRow: mid, msg: `${matrix[mid][0]} ≤ ${t} ≤ ${matrix[mid][cols-1]} → target is in row ${mid}!` });
-      lo = mid;
-      break;
-    }
-  }
+  while (left <= right) {
+    const mid = left + Math.floor((right - left) / 2);
+    const row = Math.floor(mid / cols);
+    const col = mid % cols;
+    const value = matrix[row][col];
 
-  if (lo > hi) {
-    steps.push({ phase: 1, rowLo: lo, rowHi: hi, rowMid: null, colLo: null, colHi: null, colMid: null, targetRow: null, result: false, msg: `lo (${lo}) > hi (${hi}) — no valid row found → return false` });
-    return steps;
-  }
+    // Step: show mid being evaluated
+    steps.push({ left, right, mid, row, col, value, highlight: 'mid', result: null,
+      msg: `left=${left}, right=${right} → mid=${mid} → matrix[${row}][${col}] = ${value}` });
 
-  const targetRow = lo;
-
-  // Phase 2: col binary search
-  let clo = 0, chi = cols - 1;
-  while (clo <= chi) {
-    const cmid = Math.floor((clo + chi) / 2);
-    steps.push({
-      phase: 2,
-      rowLo: lo, rowHi: lo, rowMid: null,
-      colLo: clo, colHi: chi, colMid: cmid,
-      targetRow,
-      msg: `Phase 2 — Col binary search in row ${targetRow}: lo=${clo}, hi=${chi}, mid=${cmid} → matrix[${targetRow}][${cmid}] = ${matrix[targetRow][cmid]}`
-    });
-    if (t < matrix[targetRow][cmid]) {
-      steps.push({ phase: 2, rowLo: lo, rowHi: lo, rowMid: null, colLo: clo, colHi: cmid-1, colMid: cmid, targetRow, msg: `${t} < ${matrix[targetRow][cmid]} → search left half, hi = ${cmid-1}` });
-      chi = cmid - 1;
-    } else if (t > matrix[targetRow][cmid]) {
-      steps.push({ phase: 2, rowLo: lo, rowHi: lo, rowMid: null, colLo: cmid+1, colHi: chi, colMid: cmid, targetRow, msg: `${t} > ${matrix[targetRow][cmid]} → search right half, lo = ${cmid+1}` });
-      clo = cmid + 1;
-    } else {
-      steps.push({ phase: 2, rowLo: lo, rowHi: lo, rowMid: null, colLo: clo, colHi: chi, colMid: cmid, targetRow, result: true, msg: `matrix[${targetRow}][${cmid}] = ${t} → FOUND! return true ✓` });
+    if (value === target) {
+      steps.push({ left, right, mid, row, col, value, highlight: 'found', result: true,
+        msg: `matrix[${row}][${col}] = ${value} == ${target} → return true ✓` });
       return steps;
+    } else if (value < target) {
+      steps.push({ left, right: right, mid, row, col, value, highlight: 'go-right', result: null,
+        msg: `${value} < ${target} → search right half, left = ${mid + 1}` });
+      left = mid + 1;
+    } else {
+      steps.push({ left, right, mid, row, col, value, highlight: 'go-left', result: null,
+        msg: `${value} > ${target} → search left half, right = ${mid - 1}` });
+      right = mid - 1;
     }
   }
 
-  steps.push({ phase: 2, rowLo: lo, rowHi: lo, rowMid: null, colLo: clo, colHi: chi, colMid: null, targetRow, result: false, msg: `lo (${clo}) > hi (${chi}) — target not in row ${targetRow} → return false` });
+  steps.push({ left, right, mid: null, row: null, col: null, value: null, highlight: 'not-found', result: false,
+    msg: `left (${left}) > right (${right}) — target not found → return false ✗` });
   return steps;
 }
 
@@ -770,95 +726,57 @@ function applyStep(s) {
   const rows = matrix.length, cols = matrix[0].length;
   clearCellClasses();
 
-  // Code highlight
-  ['code-row-search','code-col-search','code-return-false'].forEach(id => {
+  // Highlight cells: eliminated, left/right boundary, mid
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const flatIdx = r * cols + c;
+      const el = document.getElementById(`cell-${r}-${c}`);
+      if (s.result === true && r === s.row && c === s.col) {
+        el.classList.add('found');
+      } else if (s.highlight === 'not-found') {
+        el.classList.add('not-found');
+      } else if (flatIdx < s.left || flatIdx > s.right) {
+        el.classList.add('eliminated');
+      } else if (r === s.row && c === s.col) {
+        el.classList.add('col-mid');
+      } else if (flatIdx === s.left) {
+        el.classList.add('col-lo');
+      } else if (flatIdx === s.right) {
+        el.classList.add('col-hi');
+      }
+    }
+  }
+
+  // Code highlighting
+  ['code-mid','code-found','code-go-right','code-go-left','code-return-false'].forEach(id => {
     document.getElementById(id).classList.remove('hl-row-search','hl-col-search','hl-found');
   });
-
-  if (s.phase === 1) {
-    document.getElementById('code-row-search').classList.add('hl-row-search');
-    document.getElementById('phase1').className = 'phase-chip active-phase1';
-    document.getElementById('phase2').className = 'phase-chip';
-  } else {
-    document.getElementById('code-col-search').classList.add('hl-col-search');
-    document.getElementById('phase1').className = 'phase-chip';
-    document.getElementById('phase2').className = 'phase-chip active-phase2';
+  const hlMap = {
+    'mid': ['code-mid', 'hl-row-search'],
+    'found': ['code-found', 'hl-found'],
+    'go-right': ['code-go-right', 'hl-col-search'],
+    'go-left': ['code-go-left', 'hl-col-search'],
+    'not-found': ['code-return-false', 'hl-row-search'],
+  };
+  if (hlMap[s.highlight]) {
+    const [id, cls] = hlMap[s.highlight];
+    document.getElementById(id).classList.add(cls);
   }
 
-  if (s.result === false) {
-    document.getElementById(s.phase === 1 ? 'code-row-search' : 'code-return-false').classList.add('hl-row-search');
-  }
-  if (s.result === true) {
-    document.getElementById('code-col-search').classList.add('hl-found');
-  }
-
-  // Update variable display
-  document.getElementById('varRowLo').textContent  = s.rowLo  !== null ? s.rowLo  : '—';
-  document.getElementById('varRowHi').textContent  = s.rowHi  !== null ? s.rowHi  : '—';
-  document.getElementById('varRowMid').textContent = s.rowMid !== null ? s.rowMid : '—';
-  document.getElementById('varTargetRow').textContent = s.targetRow !== null ? s.targetRow : '—';
-  document.getElementById('varColLo').textContent  = s.colLo  !== null ? s.colLo  : '—';
-  document.getElementById('varColHi').textContent  = s.colHi  !== null ? s.colHi  : '—';
-  document.getElementById('varColMid').textContent = s.colMid !== null ? s.colMid : '—';
-  document.getElementById('varTarget').textContent = parseInt(document.getElementById('targetInput').value);
-
-  // Cell highlighting
-  if (s.phase === 1) {
-    // Highlight entire rows based on lo/hi/mid
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const el = document.getElementById(`cell-${r}-${c}`);
-        if (r < s.rowLo || r > s.rowHi) {
-          el.classList.add('eliminated');
-        } else if (s.targetRow !== null && r === s.targetRow) {
-          el.classList.add('row-found');
-        } else if (r === s.rowMid) {
-          el.classList.add('row-mid');
-        } else if (r === s.rowLo) {
-          el.classList.add('row-lo');
-        } else if (r === s.rowHi) {
-          el.classList.add('row-hi');
-        }
-      }
-    }
-  } else {
-    // Dim all rows except targetRow
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const el = document.getElementById(`cell-${r}-${c}`);
-        if (r !== s.targetRow) {
-          el.classList.add('eliminated');
-        } else {
-          if (s.result === true && c === s.colMid) {
-            el.classList.add('found');
-          } else if (s.result === false) {
-            el.classList.add('not-found');
-          } else if (c < s.colLo || c > s.colHi) {
-            el.classList.add('eliminated');
-          } else if (c === s.colMid) {
-            el.classList.add('col-mid');
-          } else if (c === s.colLo) {
-            el.classList.add('col-lo');
-          } else if (c === s.colHi) {
-            el.classList.add('col-hi');
-          }
-        }
-      }
-    }
-  }
+  // Update vars
+  document.getElementById('varLeft').textContent  = s.left  !== null ? s.left  : '—';
+  document.getElementById('varRight').textContent = s.right !== null ? s.right : '—';
+  document.getElementById('varMid').textContent   = s.mid   !== null ? s.mid   : '—';
+  document.getElementById('varRow').textContent   = s.row   !== null ? s.row   : '—';
+  document.getElementById('varCol').textContent   = s.col   !== null ? s.col   : '—';
+  document.getElementById('varValue').textContent = s.value !== null ? s.value : '—';
+  document.getElementById('varTarget').textContent = document.getElementById('targetInput').value;
 
   // Result box
   const rb = document.getElementById('resultBox');
-  if (s.result === true) {
-    rb.textContent = 'return true ✓';
-    rb.className = 'result-box true';
-  } else if (s.result === false) {
-    rb.textContent = 'return false ✗';
-    rb.className = 'result-box false';
-  } else {
-    rb.textContent = '— searching —';
-    rb.className = 'result-box';
-  }
+  if (s.result === true)  { rb.textContent = 'return true ✓';  rb.className = 'result-box true'; }
+  else if (s.result === false) { rb.textContent = 'return false ✗'; rb.className = 'result-box false'; }
+  else { rb.textContent = '— searching —'; rb.className = 'result-box'; }
 
   document.getElementById('statusText').textContent = s.msg;
 }
@@ -871,17 +789,12 @@ function startAnimation() {
     setStatus('', 'Paused');
     return;
   }
-
-  if (currentStep === 0) {
-    target = parseInt(document.getElementById('targetInput').value) || 0;
-    steps = computeSteps();
-  }
-
+  if (currentStep === 0) steps = computeSteps();
   if (currentStep >= steps.length) { resetAll(); return; }
 
   isRunning = true;
   document.getElementById('runBtn').textContent = '⏸ Pause';
-  setStatus('running', 'Running binary search...');
+  setStatus('running', 'Running...');
 
   animTimer = setInterval(() => {
     if (currentStep >= steps.length) {
@@ -889,28 +802,21 @@ function startAnimation() {
       isRunning = false;
       document.getElementById('runBtn').textContent = '▶ Run';
       const last = steps[steps.length - 1];
-      setStatus(last.result === true ? 'done-found' : 'done-notfound',
-        last.result === true ? 'Target found! ✓' : 'Target not found ✗');
+      setStatus(last.result === true ? 'done-found' : 'done-notfound', last.msg);
       return;
     }
-    applyStep(steps[currentStep]);
-    currentStep++;
+    applyStep(steps[currentStep++]);
   }, getSpeed());
 }
 
 function stepForward() {
   if (isRunning) return;
-  if (currentStep === 0) {
-    target = parseInt(document.getElementById('targetInput').value) || 0;
-    steps = computeSteps();
-  }
+  if (currentStep === 0) steps = computeSteps();
   if (currentStep >= steps.length) return;
-  applyStep(steps[currentStep]);
-  currentStep++;
+  applyStep(steps[currentStep++]);
   if (currentStep >= steps.length) {
     const last = steps[steps.length - 1];
-    setStatus(last.result === true ? 'done-found' : 'done-notfound',
-      last.result === true ? 'Target found! ✓' : 'Target not found ✗');
+    setStatus(last.result === true ? 'done-found' : 'done-notfound', last.msg);
   }
 }
 
@@ -923,15 +829,13 @@ function resetAll() {
   clearCellClasses();
   document.getElementById('resultBox').textContent = '— result —';
   document.getElementById('resultBox').className = 'result-box';
-  ['varRowLo','varRowHi','varRowMid','varTargetRow','varColLo','varColHi','varColMid'].forEach(id => {
+  ['varLeft','varRight','varMid','varRow','varCol','varValue'].forEach(id => {
     document.getElementById(id).textContent = '—';
   });
   document.getElementById('varTarget').textContent = document.getElementById('targetInput').value;
-  ['code-row-search','code-col-search','code-return-false'].forEach(id => {
+  ['code-mid','code-found','code-go-right','code-go-left','code-return-false'].forEach(id => {
     document.getElementById(id).classList.remove('hl-row-search','hl-col-search','hl-found');
   });
-  document.getElementById('phase1').className = 'phase-chip';
-  document.getElementById('phase2').className = 'phase-chip';
   setStatus('', 'Ready — click Run or Step');
 }
 
@@ -942,8 +846,6 @@ function setStatus(type, text) {
 }
 
 document.getElementById('targetInput').addEventListener('change', resetAll);
-
-// Init
 buildGrid();
 </script>
 </body>
