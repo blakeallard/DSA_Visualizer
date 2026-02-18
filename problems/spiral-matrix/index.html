@@ -123,14 +123,24 @@
 
   /* Layout */
   .layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .top-row {
     display: grid;
-    grid-template-columns: 1fr 420px;
+    grid-template-columns: 1fr 1fr;
     gap: 24px;
     align-items: start;
   }
 
+  .code-card {
+    width: 100%;
+  }
+
   @media (max-width: 800px) {
-    .layout { grid-template-columns: 1fr; }
+    .top-row { grid-template-columns: 1fr; }
   }
 
   .card {
@@ -409,7 +419,8 @@
   }
 
   .code-block pre {
-    white-space: pre;
+    white-space: pre-wrap;
+    word-break: break-word;
     font-family: 'JetBrains Mono', monospace;
   }
 
@@ -595,8 +606,8 @@
   </header>
 
   <div class="layout">
-    <!-- Left: Matrix -->
-    <div>
+    <!-- Top row: Matrix left, Output right -->
+    <div class="top-row">
       <div class="card">
         <div class="card-label">Matrix Input</div>
 
@@ -650,10 +661,8 @@
           <span class="status-text" id="statusText">Ready — click Run or Step</span>
         </div>
       </div>
-    </div>
 
-    <!-- Right: Output + Code -->
-    <div style="display:flex; flex-direction:column; gap:16px;">
+      <!-- Output panel -->
       <div class="card">
         <div class="output-section">
           <div class="output-label">Spiral Output</div>
@@ -672,45 +681,43 @@
           <span class="complexity-chip space-chip">◻ O(1) space</span>
         </div>
       </div>
+    </div>
 
-      <div class="card">
-        <div class="card-label">Solution Code</div>
-        <div class="code-block">
+    <!-- Full-width code block below -->
+    <div class="card code-card">
+      <div class="card-label">Solution Code</div>
+      <div class="code-block">
 <pre><span class="kw">class</span> <span class="fn">Solution</span> {
 <span class="kw">public</span>:
-    vector&lt;<span class="kw">int</span>&gt; <span class="fn">spiralOrder</span>(
-        vector&lt;vector&lt;<span class="kw">int</span>&gt;&gt;&amp; matrix
-    ) {
+    vector&lt;<span class="kw">int</span>&gt; <span class="fn">spiralOrder</span>(vector&lt;vector&lt;<span class="kw">int</span>&gt;&gt;&amp; matrix) {
         vector&lt;<span class="kw">int</span>&gt; <span class="var">res</span>;
-        <span class="kw">int</span> <span class="var">top</span> = <span class="num">0</span>, <span class="var">bot</span> = matrix.<span class="fn">size</span>() - <span class="num">1</span>;
+        <span class="kw">int</span> <span class="var">top</span> = <span class="num">0</span>,  <span class="var">bot</span>   = matrix.<span class="fn">size</span>() - <span class="num">1</span>;
         <span class="kw">int</span> <span class="var">left</span> = <span class="num">0</span>, <span class="var">right</span> = matrix[<span class="num">0</span>].<span class="fn">size</span>() - <span class="num">1</span>;
 
         <span class="kw">while</span> (<span class="var">left</span> &lt;= <span class="var">right</span> &amp;&amp; <span class="var">top</span> &lt;= <span class="var">bot</span>) {
-<span class="code-section" id="code-right">            <span class="cm">// → top row</span>
-            <span class="kw">for</span> (<span class="kw">int</span> c = <span class="var">left</span>; c &lt;= <span class="var">right</span>; c++)
-                <span class="var">res</span>.<span class="fn">push_back</span>(matrix[<span class="var">top</span>][c]);
+<span class="code-section" id="code-right">            <span class="cm">// → traverse top row left to right</span>
+            <span class="kw">for</span> (<span class="kw">int</span> c = <span class="var">left</span>; c &lt;= <span class="var">right</span>; c++)   <span class="var">res</span>.<span class="fn">push_back</span>(matrix[<span class="var">top</span>][c]);
             <span class="var">top</span>++;
-</span><span class="code-section" id="code-down">            <span class="cm">// ↓ right col</span>
-            <span class="kw">for</span> (<span class="kw">int</span> r = <span class="var">top</span>; r &lt;= <span class="var">bot</span>; r++)
-                <span class="var">res</span>.<span class="fn">push_back</span>(matrix[r][<span class="var">right</span>]);
+</span>
+<span class="code-section" id="code-down">            <span class="cm">// ↓ traverse right column top to bottom</span>
+            <span class="kw">for</span> (<span class="kw">int</span> r = <span class="var">top</span>; r &lt;= <span class="var">bot</span>; r++)    <span class="var">res</span>.<span class="fn">push_back</span>(matrix[r][<span class="var">right</span>]);
             <span class="var">right</span>--;
-</span><span class="code-section" id="code-left">            <span class="cm">// ← bottom row</span>
+</span>
+<span class="code-section" id="code-left">            <span class="cm">// ← traverse bottom row right to left</span>
             <span class="kw">if</span> (<span class="var">top</span> &lt;= <span class="var">bot</span>) {
-                <span class="kw">for</span> (<span class="kw">int</span> c = <span class="var">right</span>; c &gt;= <span class="var">left</span>; c--)
-                    <span class="var">res</span>.<span class="fn">push_back</span>(matrix[<span class="var">bot</span>][c]);
+                <span class="kw">for</span> (<span class="kw">int</span> c = <span class="var">right</span>; c &gt;= <span class="var">left</span>; c--)  <span class="var">res</span>.<span class="fn">push_back</span>(matrix[<span class="var">bot</span>][c]);
                 <span class="var">bot</span>--;
             }
-</span><span class="code-section" id="code-up">            <span class="cm">// ↑ left col</span>
+</span>
+<span class="code-section" id="code-up">            <span class="cm">// ↑ traverse left column bottom to top</span>
             <span class="kw">if</span> (<span class="var">left</span> &lt;= <span class="var">right</span>) {
-                <span class="kw">for</span> (<span class="kw">int</span> r = <span class="var">bot</span>; r &gt;= <span class="var">top</span>; r--)
-                    <span class="var">res</span>.<span class="fn">push_back</span>(matrix[r][<span class="var">left</span>]);
+                <span class="kw">for</span> (<span class="kw">int</span> r = <span class="var">bot</span>; r &gt;= <span class="var">top</span>; r--)   <span class="var">res</span>.<span class="fn">push_back</span>(matrix[r][<span class="var">left</span>]);
                 <span class="var">left</span>++;
             }
 </span>        }
         <span class="kw">return</span> <span class="var">res</span>;
     }
 };</pre>
-        </div>
       </div>
     </div>
   </div>
