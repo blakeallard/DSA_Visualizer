@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search a 2D Matrix — DSA.viz</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #00ffc8;
+    --accent2: #ff6b35;
+    --accent3: #a855f7;
+    --blue: #7dd3fc;
+    --yellow: #facc15;
+    --text: #e2e8f0;
+    --muted: #4a5568;
+    --cell-size: 62px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,200,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,200,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Back nav */
+  .back-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .back-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: var(--accent); }
+  .back-link .arrow { transition: transform 0.15s; }
+  .back-link:hover .arrow { transform: translateX(-3px); }
+
+  .site-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .site-logo span { color: var(--accent); }
+
+  /* Header */
+  header { margin-bottom: 40px; }
+
+  .badge {
+    display: inline-block;
+    background: rgba(168,85,247,0.08);
+    border: 1px solid rgba(168,85,247,0.2);
+    color: var(--accent3);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--blue) 0%, var(--accent3) 50%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Layout */
+  .layout { display: flex; flex-direction: column; gap: 24px; }
+
+  .top-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 800px) { .top-row { grid-template-columns: 1fr; } }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* Target input */
+  .target-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .target-row label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .target-input {
+    width: 90px;
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--yellow);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .target-input:focus { border-color: var(--yellow); box-shadow: 0 0 0 1px var(--yellow); }
+
+  /* Preset row */
+  .presets {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .preset-btn {
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .preset-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* Matrix grid */
+  .matrix-wrap { overflow: auto; margin-bottom: 20px; }
+
+  .matrix-grid {
+    display: inline-grid;
+    gap: 6px;
+  }
+
+  .cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    position: relative;
+    transition: all 0.25s;
+    color: var(--text);
+  }
+
+  /* Row highlight during row binary search */
+  .cell.row-lo { border-color: rgba(125,211,252,0.4); background: rgba(125,211,252,0.05); }
+  .cell.row-hi { border-color: rgba(255,107,53,0.4); background: rgba(255,107,53,0.05); }
+  .cell.row-mid { border-color: var(--accent3); background: rgba(168,85,247,0.12); box-shadow: 0 0 16px rgba(168,85,247,0.2); transform: scale(1.05); z-index: 2; color: var(--accent3); }
+  .cell.row-found { border-color: var(--accent); background: rgba(0,255,200,0.06); }
+
+  /* Cell binary search */
+  .cell.col-lo { border-color: rgba(125,211,252,0.4); background: rgba(125,211,252,0.05); }
+  .cell.col-hi { border-color: rgba(255,107,53,0.4); background: rgba(255,107,53,0.05); }
+  .cell.col-mid { border-color: var(--yellow); background: rgba(250,204,21,0.1); box-shadow: 0 0 16px rgba(250,204,21,0.2); transform: scale(1.08); z-index: 3; color: var(--yellow); }
+  .cell.found { border-color: var(--accent); background: rgba(0,255,200,0.15); box-shadow: 0 0 24px rgba(0,255,200,0.3); transform: scale(1.1); z-index: 4; color: var(--accent); }
+  .cell.not-found { border-color: var(--accent2); background: rgba(255,107,53,0.1); }
+  .cell.eliminated { opacity: 0.25; }
+
+  /* Row bracket indicator */
+  .row-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  /* Speed / buttons */
+  .speed-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .speed-row label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0,255,200,0.4);
+  }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { background: #00e6b5; box-shadow: 0 0 20px rgba(0,255,200,0.3); }
+
+  .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-danger { background: transparent; border: 1px solid #2a1a1a; color: #ff6b6b; }
+  .btn-danger:hover { border-color: #ff6b6b; background: rgba(255,107,107,0.05); }
+
+  /* Status */
+  .status-bar { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  .status-dot.running { background: var(--accent); animation: blink 1s ease-in-out infinite; }
+  .status-dot.done-found { background: var(--accent); }
+  .status-dot.done-notfound { background: var(--accent2); }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .status-text { font-size: 0.72rem; color: var(--muted); line-height: 1.4; }
+
+  /* Right panel */
+  .phase-indicator {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .phase-chip {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    transition: all 0.3s;
+  }
+
+  .phase-chip.active-phase1 {
+    border-color: var(--accent3);
+    color: var(--accent3);
+    background: rgba(168,85,247,0.08);
+  }
+
+  .phase-chip.active-phase2 {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    background: rgba(250,204,21,0.08);
+  }
+
+  .vars-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .var-box {
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  .var-name {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .var-val {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent3);
+    transition: color 0.2s;
+  }
+
+  .var-val.yellow { color: var(--yellow); }
+  .var-val.green { color: var(--accent); }
+
+  .result-box {
+    padding: 14px 18px;
+    border-radius: 8px;
+    text-align: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: #0d0d18;
+  }
+
+  .result-box.true {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,255,200,0.06);
+    box-shadow: 0 0 24px rgba(0,255,200,0.1);
+  }
+
+  .result-box.false {
+    border-color: var(--accent2);
+    color: var(--accent2);
+    background: rgba(255,107,53,0.06);
+  }
+
+  .complexity-row { display: flex; gap: 8px; }
+
+  .complexity-chip {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+  }
+  .time-chip { background: rgba(0,255,200,0.06); border: 1px solid rgba(0,255,200,0.15); color: var(--accent); }
+  .space-chip { background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2); color: var(--accent3); }
+
+  /* Code */
+  .code-block {
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-size: 0.82rem;
+    line-height: 1.75;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .code-block pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .kw { color: #ff6b9d; }
+  .fn { color: #7dd3fc; }
+  .var { color: var(--accent); }
+  .num { color: var(--accent2); }
+  .cm { color: #3a3a5c; font-style: italic; }
+  .tp { color: var(--blue); }
+
+  .code-section {
+    display: block;
+    border-radius: 4px;
+    margin: 1px -8px;
+    padding: 1px 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+
+  .code-section.hl-row-search {
+    background: rgba(168,85,247,0.09);
+    box-shadow: inset 3px 0 0 var(--accent3);
+  }
+  .code-section.hl-row-search .cm { color: var(--accent3); opacity: 0.8; }
+
+  .code-section.hl-col-search {
+    background: rgba(250,204,21,0.09);
+    box-shadow: inset 3px 0 0 var(--yellow);
+  }
+  .code-section.hl-col-search .cm { color: var(--yellow); opacity: 0.8; }
+
+  .code-section.hl-found {
+    background: rgba(0,255,200,0.09);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="back-nav">
+    <a class="back-link" href="../../index.html">
+      <span class="arrow">←</span> All Problems
+    </a>
+    <a class="site-logo" href="../../index.html">DSA<span>.</span>viz</a>
+  </div>
+
+  <header>
+    <div class="badge">Algorithm Visualizer</div>
+    <h1>Search a 2D Matrix</h1>
+    <div class="subtitle">O(log(m·n)) time · O(1) space · Double Binary Search</div>
+  </header>
+
+  <div class="layout">
+    <div class="top-row">
+
+      <!-- Left: Matrix + controls -->
+      <div class="card">
+        <div class="card-label">Matrix Input</div>
+
+        <div class="target-row">
+          <label>Target</label>
+          <input class="target-input" type="number" id="targetInput" value="10">
+        </div>
+
+        <div class="presets">
+          <button class="preset-btn" onclick="loadPreset(0)">Example 1 (found)</button>
+          <button class="preset-btn" onclick="loadPreset(1)">Example 2 (not found)</button>
+          <button class="preset-btn" onclick="fillRandom()">Random</button>
+        </div>
+
+        <div class="matrix-wrap">
+          <div class="matrix-grid" id="matrixGrid"></div>
+        </div>
+
+        <div class="speed-row">
+          <label>Speed</label>
+          <input type="range" id="speedSlider" min="1" max="10" value="4">
+          <span style="font-size:0.7rem;color:var(--muted)" id="speedLabel">4</span>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="runBtn" onclick="startAnimation()">▶ Run</button>
+          <button class="btn btn-secondary" onclick="stepForward()">Step</button>
+          <button class="btn btn-danger" onclick="resetAll()">↺ Reset</button>
+        </div>
+
+        <div class="status-bar">
+          <div class="status-dot" id="statusDot"></div>
+          <span class="status-text" id="statusText">Ready — click Run or Step</span>
+        </div>
+      </div>
+
+      <!-- Right: State + result -->
+      <div class="card">
+        <div class="card-label">Algorithm State</div>
+
+        <div class="phase-indicator">
+          <div class="phase-chip" id="phase1">Phase 1: Row Search</div>
+          <div class="phase-chip" id="phase2">Phase 2: Col Search</div>
+        </div>
+
+        <div class="vars-grid">
+          <div class="var-box">
+            <div class="var-name">Row Lo</div>
+            <div class="var-val" id="varRowLo">—</div>
+          </div>
+          <div class="var-box">
+            <div class="var-name">Row Hi</div>
+            <div class="var-val" id="varRowHi">—</div>
+          </div>
+          <div class="var-box">
+            <div class="var-name">Row Mid</div>
+            <div class="var-val" id="varRowMid">—</div>
+          </div>
+          <div class="var-box">
+            <div class="var-name">Target Row</div>
+            <div class="var-val green" id="varTargetRow">—</div>
+          </div>
+          <div class="var-box">
+            <div class="var-name">Col Lo</div>
+            <div class="var-val yellow" id="varColLo">—</div>
+          </div>
+          <div class="var-box">
+            <div class="var-name">Col Hi</div>
+            <div class="var-val yellow" id="varColHi">—</div>
+          </div>
+          <div class="var-box">
+            <div class="var-name">Col Mid</div>
+            <div class="var-val yellow" id="varColMid">—</div>
+          </div>
+          <div class="var-box">
+            <div class="var-name">Target</div>
+            <div class="var-val" style="color:var(--yellow)" id="varTarget">—</div>
+          </div>
+        </div>
+
+        <div class="result-box" id="resultBox">— result —</div>
+
+        <div class="complexity-row">
+          <span class="complexity-chip time-chip">⏱ O(log(m·n)) time</span>
+          <span class="complexity-chip space-chip">◻ O(1) space</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full-width code -->
+    <div class="card">
+      <div class="card-label">Solution Code</div>
+      <div class="code-block">
+<pre><span class="kw">class</span> <span class="fn">Solution</span> {
+<span class="kw">public</span>:
+    <span class="tp">bool</span> <span class="fn">searchMatrix</span>(vector&lt;vector&lt;<span class="tp">int</span>&gt;&gt;&amp; matrix, <span class="tp">int</span> target) {
+        <span class="tp">int</span> <span class="var">rows</span> = matrix.<span class="fn">size</span>(), <span class="var">cols</span> = matrix[<span class="num">0</span>].<span class="fn">size</span>();
+
+<span class="code-section" id="code-row-search">        <span class="cm">// Phase 1: Binary search to find the correct row</span>
+        <span class="tp">int</span> <span class="var">lo</span> = <span class="num">0</span>, <span class="var">hi</span> = <span class="var">rows</span> - <span class="num">1</span>;
+        <span class="kw">while</span> (<span class="var">lo</span> &lt;= <span class="var">hi</span>) {
+            <span class="tp">int</span> <span class="var">mid</span> = (<span class="var">lo</span> + <span class="var">hi</span>) / <span class="num">2</span>;
+            <span class="kw">if</span> (target &lt; matrix[<span class="var">mid</span>][<span class="num">0</span>])        <span class="var">hi</span> = <span class="var">mid</span> - <span class="num">1</span>;   <span class="cm">// target above this row</span>
+            <span class="kw">else if</span> (target &gt; matrix[<span class="var">mid</span>][<span class="var">cols</span>-<span class="num">1</span>]) <span class="var">lo</span> = <span class="var">mid</span> + <span class="num">1</span>;   <span class="cm">// target below this row</span>
+            <span class="kw">else</span> { <span class="var">lo</span> = <span class="var">mid</span>; <span class="kw">break</span>; }                           <span class="cm">// target in this row!</span>
+        }
+        <span class="kw">if</span> (<span class="var">lo</span> &gt; <span class="var">hi</span>) <span class="kw">return false</span>;   <span class="cm">// no valid row found</span>
+        <span class="tp">int</span> <span class="var">targetRow</span> = <span class="var">lo</span>;
+</span>
+<span class="code-section" id="code-col-search">        <span class="cm">// Phase 2: Binary search within that row</span>
+        <span class="var">lo</span> = <span class="num">0</span>; <span class="var">hi</span> = <span class="var">cols</span> - <span class="num">1</span>;
+        <span class="kw">while</span> (<span class="var">lo</span> &lt;= <span class="var">hi</span>) {
+            <span class="tp">int</span> <span class="var">mid</span> = (<span class="var">lo</span> + <span class="var">hi</span>) / <span class="num">2</span>;
+            <span class="kw">if</span>      (target &lt; matrix[<span class="var">targetRow</span>][<span class="var">mid</span>])  <span class="var">hi</span> = <span class="var">mid</span> - <span class="num">1</span>;
+            <span class="kw">else if</span> (target &gt; matrix[<span class="var">targetRow</span>][<span class="var">mid</span>])  <span class="var">lo</span> = <span class="var">mid</span> + <span class="num">1</span>;
+            <span class="kw">else return true</span>;   <span class="cm">// found!</span>
+        }
+</span>
+<span class="code-section" id="code-return-false">        <span class="kw">return false</span>;   <span class="cm">// not found in target row</span>
+</span>    }
+};</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PRESETS = [
+  {
+    matrix: [[1,2,4,8],[10,11,12,13],[14,20,30,40]],
+    target: 10
+  },
+  {
+    matrix: [[1,2,4,8],[10,11,12,13],[14,20,30,40]],
+    target: 15
+  }
+];
+
+let matrix = PRESETS[0].matrix;
+let target = 10;
+let steps = [];
+let currentStep = 0;
+let animTimer = null;
+let isRunning = false;
+
+function getSpeed() {
+  return Math.round(1400 / parseInt(document.getElementById('speedSlider').value));
+}
+
+document.getElementById('speedSlider').addEventListener('input', function() {
+  document.getElementById('speedLabel').textContent = this.value;
+});
+
+function loadPreset(idx) {
+  matrix = PRESETS[idx].matrix.map(r => [...r]);
+  target = PRESETS[idx].target;
+  document.getElementById('targetInput').value = target;
+  buildGrid();
+  resetAll();
+}
+
+function fillRandom() {
+  const rows = 3, cols = 4;
+  let val = Math.floor(Math.random() * 5) + 1;
+  matrix = [];
+  for (let r = 0; r < rows; r++) {
+    matrix.push([]);
+    for (let c = 0; c < cols; c++) {
+      matrix[r].push(val);
+      val += Math.floor(Math.random() * 8) + 1;
+    }
+  }
+  // pick a random target - 50% chance it exists
+  const flat = matrix.flat();
+  if (Math.random() < 0.5) {
+    target = flat[Math.floor(Math.random() * flat.length)];
+  } else {
+    target = Math.floor(Math.random() * (flat[flat.length-1] - flat[0])) + flat[0];
+  }
+  document.getElementById('targetInput').value = target;
+  buildGrid();
+  resetAll();
+}
+
+function buildGrid() {
+  const g = document.getElementById('matrixGrid');
+  const rows = matrix.length, cols = matrix[0].length;
+  g.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+  g.innerHTML = '';
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = `cell-${r}-${c}`;
+      cell.textContent = matrix[r][c];
+      g.appendChild(cell);
+    }
+  }
+  document.getElementById('varTarget').textContent = target;
+}
+
+function clearCellClasses() {
+  const rows = matrix.length, cols = matrix[0].length;
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      const el = document.getElementById(`cell-${r}-${c}`);
+      el.className = 'cell';
+    }
+}
+
+// Build all steps for the animation
+function computeSteps() {
+  const steps = [];
+  const rows = matrix.length, cols = matrix[0].length;
+  const t = parseInt(document.getElementById('targetInput').value) || 0;
+
+  // Phase 1: row binary search
+  let lo = 0, hi = rows - 1;
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    steps.push({
+      phase: 1,
+      rowLo: lo, rowHi: hi, rowMid: mid,
+      colLo: null, colHi: null, colMid: null,
+      targetRow: null,
+      msg: `Phase 1 — Row binary search: lo=${lo}, hi=${hi}, mid=${mid} → row[${mid}] = [${matrix[mid][0]}…${matrix[mid][cols-1]}]`
+    });
+    if (t < matrix[mid][0]) {
+      steps.push({ phase: 1, rowLo: lo, rowHi: mid-1, rowMid: mid, colLo: null, colHi: null, colMid: null, targetRow: null, msg: `${t} < ${matrix[mid][0]} (first of row ${mid}) → search upper half, hi = ${mid-1}` });
+      hi = mid - 1;
+    } else if (t > matrix[mid][cols-1]) {
+      steps.push({ phase: 1, rowLo: mid+1, rowHi: hi, rowMid: mid, colLo: null, colHi: null, colMid: null, targetRow: null, msg: `${t} > ${matrix[mid][cols-1]} (last of row ${mid}) → search lower half, lo = ${mid+1}` });
+      lo = mid + 1;
+    } else {
+      steps.push({ phase: 1, rowLo: lo, rowHi: hi, rowMid: mid, colLo: null, colHi: null, colMid: null, targetRow: mid, msg: `${matrix[mid][0]} ≤ ${t} ≤ ${matrix[mid][cols-1]} → target is in row ${mid}!` });
+      lo = mid;
+      break;
+    }
+  }
+
+  if (lo > hi) {
+    steps.push({ phase: 1, rowLo: lo, rowHi: hi, rowMid: null, colLo: null, colHi: null, colMid: null, targetRow: null, result: false, msg: `lo (${lo}) > hi (${hi}) — no valid row found → return false` });
+    return steps;
+  }
+
+  const targetRow = lo;
+
+  // Phase 2: col binary search
+  let clo = 0, chi = cols - 1;
+  while (clo <= chi) {
+    const cmid = Math.floor((clo + chi) / 2);
+    steps.push({
+      phase: 2,
+      rowLo: lo, rowHi: lo, rowMid: null,
+      colLo: clo, colHi: chi, colMid: cmid,
+      targetRow,
+      msg: `Phase 2 — Col binary search in row ${targetRow}: lo=${clo}, hi=${chi}, mid=${cmid} → matrix[${targetRow}][${cmid}] = ${matrix[targetRow][cmid]}`
+    });
+    if (t < matrix[targetRow][cmid]) {
+      steps.push({ phase: 2, rowLo: lo, rowHi: lo, rowMid: null, colLo: clo, colHi: cmid-1, colMid: cmid, targetRow, msg: `${t} < ${matrix[targetRow][cmid]} → search left half, hi = ${cmid-1}` });
+      chi = cmid - 1;
+    } else if (t > matrix[targetRow][cmid]) {
+      steps.push({ phase: 2, rowLo: lo, rowHi: lo, rowMid: null, colLo: cmid+1, colHi: chi, colMid: cmid, targetRow, msg: `${t} > ${matrix[targetRow][cmid]} → search right half, lo = ${cmid+1}` });
+      clo = cmid + 1;
+    } else {
+      steps.push({ phase: 2, rowLo: lo, rowHi: lo, rowMid: null, colLo: clo, colHi: chi, colMid: cmid, targetRow, result: true, msg: `matrix[${targetRow}][${cmid}] = ${t} → FOUND! return true ✓` });
+      return steps;
+    }
+  }
+
+  steps.push({ phase: 2, rowLo: lo, rowHi: lo, rowMid: null, colLo: clo, colHi: chi, colMid: null, targetRow, result: false, msg: `lo (${clo}) > hi (${chi}) — target not in row ${targetRow} → return false` });
+  return steps;
+}
+
+function applyStep(s) {
+  const rows = matrix.length, cols = matrix[0].length;
+  clearCellClasses();
+
+  // Code highlight
+  ['code-row-search','code-col-search','code-return-false'].forEach(id => {
+    document.getElementById(id).classList.remove('hl-row-search','hl-col-search','hl-found');
+  });
+
+  if (s.phase === 1) {
+    document.getElementById('code-row-search').classList.add('hl-row-search');
+    document.getElementById('phase1').className = 'phase-chip active-phase1';
+    document.getElementById('phase2').className = 'phase-chip';
+  } else {
+    document.getElementById('code-col-search').classList.add('hl-col-search');
+    document.getElementById('phase1').className = 'phase-chip';
+    document.getElementById('phase2').className = 'phase-chip active-phase2';
+  }
+
+  if (s.result === false) {
+    document.getElementById(s.phase === 1 ? 'code-row-search' : 'code-return-false').classList.add('hl-row-search');
+  }
+  if (s.result === true) {
+    document.getElementById('code-col-search').classList.add('hl-found');
+  }
+
+  // Update variable display
+  document.getElementById('varRowLo').textContent  = s.rowLo  !== null ? s.rowLo  : '—';
+  document.getElementById('varRowHi').textContent  = s.rowHi  !== null ? s.rowHi  : '—';
+  document.getElementById('varRowMid').textContent = s.rowMid !== null ? s.rowMid : '—';
+  document.getElementById('varTargetRow').textContent = s.targetRow !== null ? s.targetRow : '—';
+  document.getElementById('varColLo').textContent  = s.colLo  !== null ? s.colLo  : '—';
+  document.getElementById('varColHi').textContent  = s.colHi  !== null ? s.colHi  : '—';
+  document.getElementById('varColMid').textContent = s.colMid !== null ? s.colMid : '—';
+  document.getElementById('varTarget').textContent = parseInt(document.getElementById('targetInput').value);
+
+  // Cell highlighting
+  if (s.phase === 1) {
+    // Highlight entire rows based on lo/hi/mid
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const el = document.getElementById(`cell-${r}-${c}`);
+        if (r < s.rowLo || r > s.rowHi) {
+          el.classList.add('eliminated');
+        } else if (s.targetRow !== null && r === s.targetRow) {
+          el.classList.add('row-found');
+        } else if (r === s.rowMid) {
+          el.classList.add('row-mid');
+        } else if (r === s.rowLo) {
+          el.classList.add('row-lo');
+        } else if (r === s.rowHi) {
+          el.classList.add('row-hi');
+        }
+      }
+    }
+  } else {
+    // Dim all rows except targetRow
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const el = document.getElementById(`cell-${r}-${c}`);
+        if (r !== s.targetRow) {
+          el.classList.add('eliminated');
+        } else {
+          if (s.result === true && c === s.colMid) {
+            el.classList.add('found');
+          } else if (s.result === false) {
+            el.classList.add('not-found');
+          } else if (c < s.colLo || c > s.colHi) {
+            el.classList.add('eliminated');
+          } else if (c === s.colMid) {
+            el.classList.add('col-mid');
+          } else if (c === s.colLo) {
+            el.classList.add('col-lo');
+          } else if (c === s.colHi) {
+            el.classList.add('col-hi');
+          }
+        }
+      }
+    }
+  }
+
+  // Result box
+  const rb = document.getElementById('resultBox');
+  if (s.result === true) {
+    rb.textContent = 'return true ✓';
+    rb.className = 'result-box true';
+  } else if (s.result === false) {
+    rb.textContent = 'return false ✗';
+    rb.className = 'result-box false';
+  } else {
+    rb.textContent = '— searching —';
+    rb.className = 'result-box';
+  }
+
+  document.getElementById('statusText').textContent = s.msg;
+}
+
+function startAnimation() {
+  if (isRunning) {
+    clearInterval(animTimer);
+    isRunning = false;
+    document.getElementById('runBtn').textContent = '▶ Run';
+    setStatus('', 'Paused');
+    return;
+  }
+
+  if (currentStep === 0) {
+    target = parseInt(document.getElementById('targetInput').value) || 0;
+    steps = computeSteps();
+  }
+
+  if (currentStep >= steps.length) { resetAll(); return; }
+
+  isRunning = true;
+  document.getElementById('runBtn').textContent = '⏸ Pause';
+  setStatus('running', 'Running binary search...');
+
+  animTimer = setInterval(() => {
+    if (currentStep >= steps.length) {
+      clearInterval(animTimer);
+      isRunning = false;
+      document.getElementById('runBtn').textContent = '▶ Run';
+      const last = steps[steps.length - 1];
+      setStatus(last.result === true ? 'done-found' : 'done-notfound',
+        last.result === true ? 'Target found! ✓' : 'Target not found ✗');
+      return;
+    }
+    applyStep(steps[currentStep]);
+    currentStep++;
+  }, getSpeed());
+}
+
+function stepForward() {
+  if (isRunning) return;
+  if (currentStep === 0) {
+    target = parseInt(document.getElementById('targetInput').value) || 0;
+    steps = computeSteps();
+  }
+  if (currentStep >= steps.length) return;
+  applyStep(steps[currentStep]);
+  currentStep++;
+  if (currentStep >= steps.length) {
+    const last = steps[steps.length - 1];
+    setStatus(last.result === true ? 'done-found' : 'done-notfound',
+      last.result === true ? 'Target found! ✓' : 'Target not found ✗');
+  }
+}
+
+function resetAll() {
+  clearInterval(animTimer);
+  isRunning = false;
+  currentStep = 0;
+  steps = [];
+  document.getElementById('runBtn').textContent = '▶ Run';
+  clearCellClasses();
+  document.getElementById('resultBox').textContent = '— result —';
+  document.getElementById('resultBox').className = 'result-box';
+  ['varRowLo','varRowHi','varRowMid','varTargetRow','varColLo','varColHi','varColMid'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+  });
+  document.getElementById('varTarget').textContent = document.getElementById('targetInput').value;
+  ['code-row-search','code-col-search','code-return-false'].forEach(id => {
+    document.getElementById(id).classList.remove('hl-row-search','hl-col-search','hl-found');
+  });
+  document.getElementById('phase1').className = 'phase-chip';
+  document.getElementById('phase2').className = 'phase-chip';
+  setStatus('', 'Ready — click Run or Step');
+}
+
+function setStatus(type, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (type ? ` ${type}` : '');
+  document.getElementById('statusText').textContent = text;
+}
+
+document.getElementById('targetInput').addEventListener('change', resetAll);
+
+// Init
+buildGrid();
+</script>
+</body>
+</html>
