@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heap Insert — DSA.viz</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #00ffc8;
+    --accent2: #ff6b35;
+    --accent3: #a855f7;
+    --blue: #7dd3fc;
+    --yellow: #facc15;
+    --text: #e2e8f0;
+    --muted: #4a5568;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,200,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,200,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  .back-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .back-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: var(--accent); }
+  .back-link .arrow { transition: transform 0.15s; }
+  .back-link:hover .arrow { transform: translateX(-3px); }
+
+  .site-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .site-logo span { color: var(--accent); }
+
+  header { margin-bottom: 40px; }
+
+  .badge {
+    display: inline-block;
+    background: rgba(0,255,200,0.08);
+    border: 1px solid rgba(0,255,200,0.2);
+    color: var(--accent);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent3) 60%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .layout { display: flex; flex-direction: column; gap: 24px; }
+
+  .top-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 800px) { .top-row { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* Insert controls */
+  .insert-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .insert-row label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .insert-input {
+    width: 80px;
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--yellow);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .insert-input:focus { border-color: var(--yellow); }
+
+  .presets {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .preset-btn {
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .preset-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* TREE VISUALIZATION */
+  .tree-wrap {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+
+  #treeCanvas {
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Array view */
+  .array-label {
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .array-view {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+
+  .array-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .array-cell-val {
+    width: 44px;
+    height: 44px;
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+  .array-cell-idx {
+    font-size: 0.55rem;
+    color: var(--muted);
+  }
+
+  .array-cell-val.active { border-color: var(--yellow); background: rgba(250,204,21,0.1); color: var(--yellow); }
+  .array-cell-val.parent { border-color: var(--accent3); background: rgba(168,85,247,0.1); color: var(--accent3); }
+  .array-cell-val.swapped { border-color: var(--accent); background: rgba(0,255,200,0.1); color: var(--accent); }
+  .array-cell-val.new { border-color: var(--accent2); background: rgba(255,107,53,0.1); color: var(--accent2); }
+
+  /* Speed / buttons */
+  .speed-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .speed-row label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0,255,200,0.4);
+  }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { background: #00e6b5; box-shadow: 0 0 20px rgba(0,255,200,0.3); }
+  .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: transparent; border: 1px solid #2a1a1a; color: #ff6b6b; }
+  .btn-danger:hover { border-color: #ff6b6b; background: rgba(255,107,107,0.05); }
+  .btn-insert { background: rgba(250,204,21,0.1); border: 1px solid rgba(250,204,21,0.3); color: var(--yellow); }
+  .btn-insert:hover { background: rgba(250,204,21,0.15); box-shadow: 0 0 16px rgba(250,204,21,0.2); }
+
+  .status-bar { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  .status-dot.running { background: var(--accent); animation: blink 1s ease-in-out infinite; }
+  .status-dot.done { background: var(--accent2); }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .status-text { font-size: 0.72rem; color: var(--muted); line-height: 1.5; }
+
+  /* Right panel */
+  .vars-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .var-box {
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  .var-name {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .var-val {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    transition: all 0.2s;
+  }
+
+  .heap-type-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .heap-type-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .heap-type-btn.active-max {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,255,200,0.06);
+  }
+
+  .heap-type-btn.active-min {
+    border-color: var(--accent3);
+    color: var(--accent3);
+    background: rgba(168,85,247,0.06);
+  }
+
+  .heap-array-display {
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 0.05em;
+    min-height: 48px;
+    word-break: break-all;
+  }
+
+  .complexity-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .complexity-chip {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+  }
+  .time-chip { background: rgba(0,255,200,0.06); border: 1px solid rgba(0,255,200,0.15); color: var(--accent); }
+  .space-chip { background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2); color: var(--accent3); }
+
+  /* Code */
+  .code-block {
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-size: 0.82rem;
+    line-height: 1.75;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .code-block pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .kw { color: #ff6b9d; }
+  .fn { color: #7dd3fc; }
+  .var { color: var(--accent); }
+  .num { color: var(--accent2); }
+  .cm { color: #3a3a5c; font-style: italic; }
+  .tp { color: var(--blue); }
+
+  .code-section {
+    display: block;
+    border-radius: 4px;
+    margin: 1px -8px;
+    padding: 1px 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+
+  .hl-push {
+    background: rgba(255,107,53,0.09);
+    box-shadow: inset 3px 0 0 var(--accent2);
+  }
+  .hl-compare {
+    background: rgba(168,85,247,0.09);
+    box-shadow: inset 3px 0 0 var(--accent3);
+  }
+  .hl-swap {
+    background: rgba(250,204,21,0.09);
+    box-shadow: inset 3px 0 0 var(--yellow);
+  }
+  .hl-done {
+    background: rgba(0,255,200,0.09);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="back-nav">
+    <a class="back-link" href="../../index.html">
+      <span class="arrow">←</span> All Problems
+    </a>
+    <a class="site-logo" href="../../index.html">DSA<span>.</span>viz</a>
+  </div>
+
+  <header>
+    <div class="badge">Algorithm Visualizer</div>
+    <h1>Heap Insert</h1>
+    <div class="subtitle">O(log n) time · O(1) space · Bubble Up</div>
+  </header>
+
+  <div class="layout">
+    <div class="top-row">
+
+      <!-- Left: Tree + controls -->
+      <div class="card">
+        <div class="card-label">Heap Tree</div>
+
+        <div class="insert-row">
+          <label>Insert</label>
+          <input class="insert-input" type="number" id="insertInput" value="15">
+          <button class="btn btn-insert" onclick="queueInsert()">+ Insert</button>
+        </div>
+
+        <div class="presets">
+          <button class="preset-btn" onclick="loadPreset(0)">Example 1</button>
+          <button class="preset-btn" onclick="loadPreset(1)">Example 2</button>
+          <button class="preset-btn" onclick="clearHeap()">Clear</button>
+        </div>
+
+        <div class="tree-wrap">
+          <canvas id="treeCanvas" width="560" height="280"></canvas>
+        </div>
+
+        <div class="array-label">Array Representation (index 0 = root)</div>
+        <div class="array-view" id="arrayView"></div>
+
+        <div class="speed-row">
+          <label>Speed</label>
+          <input type="range" id="speedSlider" min="1" max="10" value="4">
+          <span style="font-size:0.7rem;color:var(--muted)" id="speedLabel">4</span>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="runBtn" onclick="startAnimation()">▶ Run</button>
+          <button class="btn btn-secondary" onclick="stepForward()">Step</button>
+          <button class="btn btn-danger" onclick="resetInsert()">↺ Reset</button>
+        </div>
+
+        <div class="status-bar">
+          <div class="status-dot" id="statusDot"></div>
+          <span class="status-text" id="statusText">Build your heap, then insert a value</span>
+        </div>
+      </div>
+
+      <!-- Right: State -->
+      <div class="card">
+        <div class="card-label">Heap Type</div>
+
+        <div class="heap-type-row">
+          <button class="heap-type-btn active-max" id="maxBtn" onclick="setHeapType('max')">Max Heap ↑</button>
+          <button class="heap-type-btn" id="minBtn" onclick="setHeapType('min')">Min Heap ↓</button>
+        </div>
+
+        <div class="card-label">Algorithm State</div>
+        <div class="vars-grid">
+          <div class="var-box">
+            <div class="var-name">i (current)</div>
+            <div class="var-val" id="varI">—</div>
+          </div>
+          <div class="var-box">
+            <div class="var-name">parent = (i-1)/2</div>
+            <div class="var-val" style="color:var(--accent3)" id="varParent">—</div>
+          </div>
+          <div class="var-box">
+            <div class="var-name">heap[i]</div>
+            <div class="var-val" style="color:var(--yellow)" id="varValI">—</div>
+          </div>
+          <div class="var-box">
+            <div class="var-name">heap[parent]</div>
+            <div class="var-val" style="color:var(--accent3)" id="varValParent">—</div>
+          </div>
+        </div>
+
+        <div class="card-label">Current Heap Array</div>
+        <div class="heap-array-display" id="heapArrayDisplay">[ ]</div>
+
+        <div class="card-label" style="margin-bottom:8px">Parent Formula</div>
+        <div style="background:#0d0d18; border:1px solid var(--border); border-radius:8px; padding:14px; margin-bottom:20px; font-size:0.82rem; line-height:1.7;">
+          <span style="color:var(--muted)">Given index </span><span style="color:var(--yellow)">i</span><span style="color:var(--muted)">, parent is at:</span><br>
+          <span style="color:var(--accent3); font-weight:700; font-size:1rem;">parent = (i - 1) / 2</span><br><br>
+          <span style="color:var(--muted)">Left child of </span><span style="color:var(--yellow)">i</span><span style="color:var(--muted)">:</span>
+          <span style="color:var(--accent)"> 2*i + 1</span><br>
+          <span style="color:var(--muted)">Right child of </span><span style="color:var(--yellow)">i</span><span style="color:var(--muted)">:</span>
+          <span style="color:var(--accent)"> 2*i + 2</span>
+        </div>
+
+        <div class="complexity-row">
+          <span class="complexity-chip time-chip">⏱ O(log n) insert</span>
+          <span class="complexity-chip space-chip">◻ O(1) space</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full-width code -->
+    <div class="card">
+      <div class="card-label">Solution Code</div>
+      <div class="code-block">
+<pre><span class="kw">class</span> <span class="fn">MaxHeap</span> {
+    vector&lt;<span class="tp">int</span>&gt; <span class="var">heap</span>;
+
+<span class="kw">public</span>:
+    <span class="tp">void</span> <span class="fn">push</span>(<span class="tp">int</span> val) {
+<span class="code-section" id="code-push">        <span class="cm">// Step 1: append new value to the end of the array</span>
+        <span class="var">heap</span>.<span class="fn">push_back</span>(val);
+        <span class="tp">int</span> <span class="var">i</span> = <span class="var">heap</span>.<span class="fn">size</span>() - <span class="num">1</span>;
+</span>
+<span class="code-section" id="code-compare">        <span class="cm">// Step 2: bubble up — compare with parent</span>
+        <span class="kw">while</span> (<span class="var">i</span> &gt; <span class="num">0</span>) {
+            <span class="tp">int</span> <span class="var">parent</span> = (<span class="var">i</span> - <span class="num">1</span>) / <span class="num">2</span>;
+            <span class="kw">if</span> (<span class="var">heap</span>[<span class="var">i</span>] &lt;= <span class="var">heap</span>[<span class="var">parent</span>]) <span class="kw">break</span>;   <span class="cm">// heap property satisfied</span>
+</span>
+<span class="code-section" id="code-swap">            <span class="cm">// Step 3: swap with parent and move up</span>
+            swap(<span class="var">heap</span>[<span class="var">i</span>], <span class="var">heap</span>[<span class="var">parent</span>]);
+            <span class="var">i</span> = <span class="var">parent</span>;
+</span>        }
+    }
+};</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let heap = [];
+let heapType = 'max';
+let steps = [];
+let currentStep = 0;
+let animTimer = null;
+let isRunning = false;
+let pendingValue = null;
+// highlight state for drawing
+let hlI = -1, hlParent = -1, hlSwapped = -1, hlNew = -1;
+
+const PRESETS = [
+  { heap: [50, 30, 40, 10, 20, 35], insertVal: 45 },
+  { heap: [60, 40, 50, 20, 30],     insertVal: 55 },
+];
+
+const canvas = document.getElementById('treeCanvas');
+const ctx = canvas.getContext('2d');
+
+function getSpeed() {
+  return Math.round(1400 / parseInt(document.getElementById('speedSlider').value));
+}
+
+document.getElementById('speedSlider').addEventListener('input', function() {
+  document.getElementById('speedLabel').textContent = this.value;
+});
+
+function setHeapType(type) {
+  heapType = type;
+  document.getElementById('maxBtn').className = 'heap-type-btn' + (type === 'max' ? ' active-max' : '');
+  document.getElementById('minBtn').className = 'heap-type-btn' + (type === 'min' ? ' active-min' : '');
+  clearHeap();
+}
+
+function loadPreset(idx) {
+  resetInsert();
+  heap = [...PRESETS[idx].heap];
+  document.getElementById('insertInput').value = PRESETS[idx].insertVal;
+  heapType = 'max';
+  document.getElementById('maxBtn').className = 'heap-type-btn active-max';
+  document.getElementById('minBtn').className = 'heap-type-btn';
+  hlI = hlParent = hlSwapped = hlNew = -1;
+  render();
+  setStatus('', 'Heap loaded — click + Insert or type a value and run');
+}
+
+function clearHeap() {
+  resetInsert();
+  heap = [];
+  hlI = hlParent = hlSwapped = hlNew = -1;
+  render();
+  setStatus('', 'Heap cleared — load a preset or insert values');
+}
+
+// Node positions in tree
+function nodePos(idx, n) {
+  const W = canvas.width, H = canvas.height;
+  const depth = Math.floor(Math.log2(idx + 1));
+  const maxDepth = Math.floor(Math.log2(Math.max(n, 1)));
+  const posInLevel = idx - (Math.pow(2, depth) - 1);
+  const nodesInLevel = Math.pow(2, depth);
+  const totalNodes = Math.pow(2, maxDepth + 1);
+  const x = W * (posInLevel + 0.5) / nodesInLevel;
+  const y = 40 + depth * (H - 60) / (maxDepth + 1);
+  return { x, y };
+}
+
+function drawTree() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const n = heap.length;
+  if (n === 0) return;
+
+  const maxDepth = Math.floor(Math.log2(n));
+  canvas.height = Math.max(200, 60 + (maxDepth + 1) * 80);
+
+  // Draw edges
+  for (let i = 1; i < n; i++) {
+    const p = Math.floor((i - 1) / 2);
+    const pos = nodePos(i, n);
+    const ppos = nodePos(p, n);
+    ctx.beginPath();
+    ctx.moveTo(ppos.x, ppos.y);
+    ctx.lineTo(pos.x, pos.y);
+
+    // highlight edge if this is the active bubble-up path
+    if ((i === hlI && p === hlParent) || (i === hlParent && p === Math.floor((hlParent-1)/2) && hlI === hlParent)) {
+      ctx.strokeStyle = 'rgba(168,85,247,0.6)';
+      ctx.lineWidth = 2.5;
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 1.5;
+    }
+    ctx.stroke();
+  }
+
+  // Draw nodes
+  for (let i = 0; i < n; i++) {
+    const pos = nodePos(i, n);
+    const r = 22;
+
+    let fillColor = '#0d0d18';
+    let strokeColor = '#1e1e2e';
+    let textColor = '#e2e8f0';
+    let strokeWidth = 1.5;
+
+    if (i === hlSwapped || i === hlParent && hlSwapped !== -1) {
+      fillColor = 'rgba(0,255,200,0.12)';
+      strokeColor = '#00ffc8';
+      textColor = '#00ffc8';
+      strokeWidth = 2.5;
+    } else if (i === hlI) {
+      fillColor = 'rgba(250,204,21,0.12)';
+      strokeColor = '#facc15';
+      textColor = '#facc15';
+      strokeWidth = 2.5;
+    } else if (i === hlParent) {
+      fillColor = 'rgba(168,85,247,0.12)';
+      strokeColor = '#a855f7';
+      textColor = '#a855f7';
+      strokeWidth = 2.5;
+    } else if (i === hlNew) {
+      fillColor = 'rgba(255,107,53,0.12)';
+      strokeColor = '#ff6b35';
+      textColor = '#ff6b35';
+      strokeWidth = 2;
+    }
+
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = strokeWidth;
+    ctx.stroke();
+
+    // index label
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.font = '9px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText(i, pos.x, pos.y - 13);
+
+    // value
+    ctx.fillStyle = textColor;
+    ctx.font = `bold 14px JetBrains Mono`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(heap[i], pos.x, pos.y + 1);
+  }
+}
+
+function renderArrayView() {
+  const av = document.getElementById('arrayView');
+  av.innerHTML = '';
+  heap.forEach((val, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'array-cell';
+    const valDiv = document.createElement('div');
+    valDiv.className = 'array-cell-val';
+    if (i === hlI && hlSwapped !== -1) valDiv.classList.add('swapped');
+    else if (i === hlParent && hlSwapped !== -1) valDiv.classList.add('swapped');
+    else if (i === hlI) valDiv.classList.add('active');
+    else if (i === hlParent) valDiv.classList.add('parent');
+    else if (i === hlNew) valDiv.classList.add('new');
+    valDiv.textContent = val;
+    const idxDiv = document.createElement('div');
+    idxDiv.className = 'array-cell-idx';
+    idxDiv.textContent = i;
+    cell.appendChild(valDiv);
+    cell.appendChild(idxDiv);
+    av.appendChild(cell);
+  });
+}
+
+function updateHeapDisplay() {
+  document.getElementById('heapArrayDisplay').textContent = `[ ${heap.join(', ')} ]`;
+}
+
+function render() {
+  drawTree();
+  renderArrayView();
+  updateHeapDisplay();
+}
+
+function compareOp(a, b) {
+  return heapType === 'max' ? a > b : a < b;
+}
+
+// Build animation steps for inserting a value
+function computeSteps(val) {
+  const steps = [];
+  const h = [...heap, val];
+  let i = h.length - 1;
+
+  steps.push({ type: 'push', heap: [...h], i, parent: -1, msg: `Push ${val} to end of array at index ${i}` });
+
+  while (i > 0) {
+    const parent = Math.floor((i - 1) / 2);
+    steps.push({ type: 'compare', heap: [...h], i, parent, msg: `Compare heap[${i}]=${h[i]} with parent heap[${parent}]=${h[parent]}` });
+
+    if (compareOp(h[i], h[parent])) {
+      // swap
+      [h[i], h[parent]] = [h[parent], h[i]];
+      steps.push({ type: 'swap', heap: [...h], i, parent, msg: `${heapType === 'max' ? 'Child > parent' : 'Child < parent'} → swap! ${h[parent]} ↔ ${h[i]}` });
+      i = parent;
+    } else {
+      steps.push({ type: 'done', heap: [...h], i, parent, msg: `${heapType === 'max' ? 'Child ≤ parent' : 'Child ≥ parent'} → heap property satisfied, stop` });
+      return steps;
+    }
+  }
+
+  steps.push({ type: 'done', heap: [...h], i, parent: -1, msg: `Reached root (index 0) — insertion complete!` });
+  return steps;
+}
+
+function applyStep(s) {
+  heap = [...s.heap];
+  hlNew = s.type === 'push' ? s.i : -1;
+  hlI = s.i;
+  hlParent = s.parent;
+  hlSwapped = s.type === 'swap' ? s.i : -1;
+
+  // code highlight
+  ['code-push','code-compare','code-swap'].forEach(id => {
+    document.getElementById(id).classList.remove('hl-push','hl-compare','hl-swap','hl-done');
+  });
+
+  if (s.type === 'push')    document.getElementById('code-push').classList.add('hl-push');
+  if (s.type === 'compare') document.getElementById('code-compare').classList.add('hl-compare');
+  if (s.type === 'swap')    document.getElementById('code-swap').classList.add('hl-swap');
+  if (s.type === 'done')    document.getElementById('code-compare').classList.add('hl-done');
+
+  // vars
+  document.getElementById('varI').textContent        = s.i !== undefined ? s.i : '—';
+  document.getElementById('varParent').textContent   = s.parent >= 0 ? s.parent : '—';
+  document.getElementById('varValI').textContent     = s.heap[s.i] !== undefined ? s.heap[s.i] : '—';
+  document.getElementById('varValParent').textContent = s.parent >= 0 ? s.heap[s.parent] : '—';
+
+  render();
+  document.getElementById('statusText').textContent = s.msg;
+}
+
+function queueInsert() {
+  const val = parseInt(document.getElementById('insertInput').value);
+  if (isNaN(val)) return;
+  if (heap.length === 0) {
+    // just push it directly with no animation needed
+    heap.push(val);
+    hlNew = 0; hlI = 0; hlParent = -1; hlSwapped = -1;
+    render();
+    setStatus('done', `Inserted ${val} as root`);
+    return;
+  }
+  pendingValue = val;
+  currentStep = 0;
+  steps = computeSteps(val);
+  setStatus('', `Ready to insert ${val} — click Run or Step`);
+}
+
+function startAnimation() {
+  if (isRunning) {
+    clearInterval(animTimer);
+    isRunning = false;
+    document.getElementById('runBtn').textContent = '▶ Run';
+    setStatus('', 'Paused');
+    return;
+  }
+
+  if (steps.length === 0) {
+    queueInsert();
+    if (steps.length === 0) return;
+  }
+
+  if (currentStep >= steps.length) return;
+
+  isRunning = true;
+  document.getElementById('runBtn').textContent = '⏸ Pause';
+  setStatus('running', 'Inserting...');
+
+  animTimer = setInterval(() => {
+    if (currentStep >= steps.length) {
+      clearInterval(animTimer);
+      isRunning = false;
+      document.getElementById('runBtn').textContent = '▶ Run';
+      setStatus('done', `✓ Insertion complete — heap size: ${heap.length}`);
+      pendingValue = null;
+      return;
+    }
+    applyStep(steps[currentStep++]);
+  }, getSpeed());
+}
+
+function stepForward() {
+  if (isRunning) return;
+  if (steps.length === 0) {
+    queueInsert();
+    if (steps.length === 0) return;
+  }
+  if (currentStep >= steps.length) return;
+  applyStep(steps[currentStep++]);
+  if (currentStep >= steps.length) {
+    setStatus('done', `✓ Insertion complete — heap size: ${heap.length}`);
+    pendingValue = null;
+  }
+}
+
+function resetInsert() {
+  clearInterval(animTimer);
+  isRunning = false;
+  currentStep = 0;
+  steps = [];
+  pendingValue = null;
+  document.getElementById('runBtn').textContent = '▶ Run';
+  ['code-push','code-compare','code-swap'].forEach(id => {
+    document.getElementById(id).classList.remove('hl-push','hl-compare','hl-swap','hl-done');
+  });
+  ['varI','varParent','varValI','varValParent'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+  });
+  // revert heap to before the pending insert
+  if (pendingValue !== null) {
+    heap = heap.filter((_, i) => i < heap.length);
+  }
+  hlI = hlParent = hlSwapped = hlNew = -1;
+  render();
+  setStatus('', 'Reset — click + Insert to queue a value');
+}
+
+function setStatus(type, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (type ? ` ${type}` : '');
+  document.getElementById('statusText').textContent = text;
+}
+
+// Init
+loadPreset(0);
+</script>
+</body>
+</html>
