@@ -1,100 +1,85 @@
-# DSA — Blake's Algorithm Visualizer
+# DSA — Blake Allard’s Algorithm Visualizer
 
-Interactive visualizations for every LeetCode problem I've gotten stuck on.
-Built with vanilla HTML/CSS/JS. No frameworks, no build step, deploys instantly to GitHub Pages.
+Interactive visualizations for Data Structures & Algorithms problems I’ve studied and solved.
 
----
-
-## Deploy to GitHub Pages (one-time setup)
-
-### 1. Create a GitHub repo
-
-Go to [github.com/new](https://github.com/new) and create a new repo called `dsa-viz` (or anything you like).
-Make it **public** (required for free GitHub Pages).
-
-### 2. Push this folder
-
-```bash
-cd dsa-visualizer
-git init
-git add .
-git commit -m "Initial commit — Spiral Matrix"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/dsa-viz.git
-git push -u origin main
-```
-
-### 3. Enable GitHub Pages
-
-1. Go to your repo on GitHub
-2. Click **Settings** → **Pages** (left sidebar)
-3. Under "Source" select **Deploy from a branch**
-4. Choose **main** branch, **/ (root)** folder
-5. Click **Save**
-
-Your site will be live at:
-```
-https://YOUR_USERNAME.github.io/dsa-viz/
-```
-(takes ~60 seconds to deploy)
+Live Site:
+https://blakeallard.github.io/DSA_Visualizer/
 
 ---
 
-## ➕ Adding a New Problem
+## Overview
 
-When you bring me a new LeetCode problem, I'll:
+This project turns LeetCode-style problems into interactive visual demonstrations.
 
-1. Create `problems/PROBLEM-NAME/index.html` with a full visualizer
-2. Add a new card to `index.html`
+Instead of only writing C++ solutions, each problem is rebuilt visually to reinforce:
 
-Then you just run:
+- Traversal patterns
+- Pointer movement
+- State transitions
+- Algorithm flow
+- Time and space intuition
 
-```bash
-git add .
-git commit -m "Add: Problem Name visualizer"
-git push
-```
+Built with plain HTML, CSS, and JavaScript.
+Deployed using GitHub Pages.
 
-GitHub Pages auto-deploys — your site updates in ~30 seconds.
+---
+
+## Tech Stack
+
+- HTML
+- CSS
+- JavaScript (Vanilla)
+- GitHub Pages
+
+No frameworks. No build tools. No dependencies.
 
 ---
 
 ## Project Structure
 
-```
-dsa-visualizer/
-├── index.html                        ← Home page (problem grid)
+DSA_Visualizer/
+├── index.html
 ├── README.md
 └── problems/
     ├── spiral-matrix/
-    │   └── index.html                ← Spiral Matrix visualizer
-    ├── two-sum/
-    │   └── index.html                ← (coming soon)
-    └── ...
-```
+    │   └── index.html
+    ├── search-2d-matrix/
+    │   └── index.html
+    ├── heap-insert/
+    │   └── index.html
+
+Each problem lives in its own folder with a fully self-contained visualizer.
+
+---
+
+## Deployment
+
+This site is automatically deployed using GitHub Pages from the `main` branch.
+
+To update the site:
+
+git add .
+git commit -m "Update visualizer"
+git push
+
+Changes go live automatically.
+
+---
+
+## Current Problems
+
+- Spiral Matrix — Matrix Traversal
+- Search 2D Matrix — Binary Search
+- Heap Insert — Heap / Tree
+
+More problems will be added as I progress through advanced algorithm patterns.
 
 ---
 
 ## Run Locally
 
-Just open `index.html` in your browser — no server needed.
+Open `index.html` directly in your browser.
 
-Or with a local server for hot reload:
-```bash
+Or run a simple local server:
+
 npx serve .
-# → http://localhost:3000
-```
-
----
-
-## Problems
-
-| # | Problem | Difficulty | Status |
-|---|---------|------------|--------|
-| 054 | Spiral Matrix | Medium | Live |
-| 001 | Two Sum | Easy | 🔜 Soon |
-| 011 | Container With Most Water | Medium | 🔜 Soon |
-| 042 | Trapping Rain Water | Hard | 🔜 Soon |
-| 102 | Binary Tree Level Order Traversal | Medium | 🔜 Soon |
-| 200 | Number of Islands | Medium | 🔜 Soon |
-| 322 | Coin Change | Medium | 🔜 Soon |
