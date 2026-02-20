@@ -1,11 +1,11 @@
-# Blake's Algorithm Visualizer
+# 🌀 DSA.viz — Blake's Algorithm Visualizer
 
 Interactive visualizations for every LeetCode problem I've gotten stuck on.
 Built with vanilla HTML/CSS/JS. No frameworks, no build step, deploys instantly to GitHub Pages.
 
 ---
 
-## Deploy to GitHub Pages (one-time setup)
+## 🚀 Deploy to GitHub Pages (one-time setup)
 
 ### 1. Create a GitHub repo
 
@@ -59,7 +59,7 @@ GitHub Pages auto-deploys — your site updates in ~30 seconds.
 
 ---
 
-## Project Structure
+## 🗂 Project Structure
 
 ```
 dsa-visualizer/
@@ -75,7 +75,7 @@ dsa-visualizer/
 
 ---
 
-## Run Locally
+## 🖥 Run Locally
 
 Just open `index.html` in your browser — no server needed.
 
@@ -91,7 +91,7 @@ npx serve .
 
 | # | Problem | Difficulty | Status |
 |---|---------|------------|--------|
-| 054 | Spiral Matrix | Medium | Live |
+| 054 | Spiral Matrix | Medium | ✅ Live |
 | 001 | Two Sum | Easy | 🔜 Soon |
 | 011 | Container With Most Water | Medium | 🔜 Soon |
 | 042 | Trapping Rain Water | Hard | 🔜 Soon |

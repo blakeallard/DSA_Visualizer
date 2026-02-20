@@ -119,16 +119,37 @@
   }
 
   /* Layout */
-  .layout { display: flex; flex-direction: column; gap: 24px; }
-
-  .top-row {
+  /* Layout */
+  .layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
     align-items: start;
   }
 
-  @media (max-width: 800px) { .top-row { grid-template-columns: 1fr; } }
+  .left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .top-row {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .code-card {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .code-card { position: static; max-height: none; }
+  }
 
   /* Card */
   .card {
@@ -489,7 +510,8 @@
   </header>
 
   <div class="layout">
-    <div class="top-row">
+    <div class="left-col">
+      <div class="top-row">
 
       <!-- Left: Matrix + controls -->
       <div class="card">
@@ -570,10 +592,11 @@
           <span class="complexity-chip space-chip">◻ O(1) space</span>
         </div>
       </div>
-    </div>
+    </div> <!-- end top-row -->
+    </div> <!-- end left-col -->
 
-    <!-- Full-width code -->
-    <div class="card">
+    <!-- Right: sticky code panel -->
+    <div class="card code-card">
       <div class="card-label">Solution Code</div>
       <div class="code-block">
 <pre><span class="kw">class</span> <span class="fn">Solution</span> {

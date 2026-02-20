@@ -123,24 +123,34 @@
 
   /* Layout */
   .layout {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
-
-  .top-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
     align-items: start;
   }
 
-  .code-card {
-    width: 100%;
+  .left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
   }
 
-  @media (max-width: 800px) {
-    .top-row { grid-template-columns: 1fr; }
+  .top-row {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .code-card {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .code-card { position: static; max-height: none; }
   }
 
   .card {
@@ -606,9 +616,10 @@
   </header>
 
   <div class="layout">
-    <!-- Top row: Matrix left, Output right -->
-    <div class="top-row">
-      <div class="card">
+    <div class="left-col">
+      <!-- Top row: Matrix left, Output right -->
+      <div class="top-row">
+        <div class="card">
         <div class="card-label">Matrix Input</div>
 
         <div class="size-controls">
@@ -681,9 +692,10 @@
           <span class="complexity-chip space-chip">◻ O(1) space</span>
         </div>
       </div>
-    </div>
+    </div> <!-- end top-row -->
+    </div> <!-- end left-col -->
 
-    <!-- Full-width code block below -->
+    <!-- Right: sticky code panel -->
     <div class="card code-card">
       <div class="card-label">Solution Code</div>
       <div class="code-block">
