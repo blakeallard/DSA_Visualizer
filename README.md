@@ -1,26 +1,34 @@
-# DSA — Blake Allard’s Algorithm Visualizer
+# DSA Visualizer
 
-Interactive visualizations for Data Structures & Algorithms problems I’ve studied and solved.
+Interactive algorithm visualizations built to strengthen deep understanding of data structures and problem-solving patterns.
 
-Live Site:
+Live Demo:
 https://blakeallard.github.io/DSA_Visualizer/
+
+---
+
+## Preview
+
+![DSA Visualizer Demo](assets/demo.gif)
+
+Place your GIF at: DSA_Visualizer/assets/demo.gif
 
 ---
 
 ## Overview
 
-This project turns LeetCode-style problems into interactive visual demonstrations.
+This project converts common interview-style problems into interactive visual simulations.
 
-Instead of only writing C++ solutions, each problem is rebuilt visually to reinforce:
+Instead of only writing C++ solutions, each algorithm is reconstructed visually to expose:
 
-- Traversal patterns
+- Traversal mechanics
 - Pointer movement
 - State transitions
-- Algorithm flow
-- Time and space intuition
+- Heap restructuring
+- Matrix boundary contraction
+- Binary search flow
 
-Built with plain HTML, CSS, and JavaScript.
-Deployed using GitHub Pages.
+The goal is not just correctness — it is algorithmic intuition.
 
 ---
 
@@ -28,10 +36,22 @@ Deployed using GitHub Pages.
 
 - HTML
 - CSS
-- JavaScript (Vanilla)
+- Vanilla JavaScript
 - GitHub Pages
 
 No frameworks. No build tools. No dependencies.
+
+Fully static deployment.
+
+---
+
+## Current Problems
+
+- Spiral Matrix — Matrix traversal pattern
+- Search 2D Matrix — Binary search over matrix
+- Heap Insert — Heap restructuring logic
+
+More problems will be added as I progress through advanced algorithm patterns.
 
 ---
 
@@ -42,44 +62,33 @@ DSA_Visualizer/
 ├── README.md
 └── problems/
     ├── spiral-matrix/
-    │   └── index.html
     ├── search-2d-matrix/
-    │   └── index.html
     ├── heap-insert/
-    │   └── index.html
+└── assets/
+    └── demo.gif
 
-Each problem lives in its own folder with a fully self-contained visualizer.
+Each problem is fully self-contained inside its own directory.
 
 ---
 
 ## Deployment
 
-This site is automatically deployed using GitHub Pages from the `main` branch.
+This site is automatically deployed using GitHub Pages from the main branch.
 
-To update the site:
+To update the live site:
 
 git add .
 git commit -m "Update visualizer"
 git push
 
-Changes go live automatically.
-
----
-
-## Current Problems
-
-- Spiral Matrix — Matrix Traversal
-- Search 2D Matrix — Binary Search
-- Heap Insert — Heap / Tree
-
-More problems will be added as I progress through advanced algorithm patterns.
+Changes deploy automatically.
 
 ---
 
 ## Run Locally
 
-Open `index.html` directly in your browser.
+Open index.html directly in your browser.
 
-Or run a simple local server:
+Or run:
 
 npx serve .
