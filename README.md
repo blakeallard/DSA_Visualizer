@@ -49,9 +49,9 @@ Most algorithm practice stops at correctness — you get the right answer, move 
 
 | Problem | Category | What You'll See |
 |---|---|---|
-| 🌀 **Spiral Matrix** | Matrix Traversal | Boundary contraction, direction switching, layer peeling |
-| 🔍 **Search 2D Matrix** | Binary Search | Coordinate mapping, mid-point targeting, elimination zones |
-| 📦 **Heap Insert** | Heap / Trees | Node placement, parent comparisons, sift-up restructuring |
+| **Spiral Matrix** | Matrix Traversal | Boundary contraction, direction switching, layer peeling |
+| **Search 2D Matrix** | Binary Search | Coordinate mapping, mid-point targeting, elimination zones |
+| **Heap Insert** | Heap / Trees | Node placement, parent comparisons, sift-up restructuring |
 
 > More problems added continuously as I progress through advanced algorithm patterns.
 
