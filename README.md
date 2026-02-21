@@ -87,53 +87,6 @@ Every problem is **fully self-contained** in its own directory. Open any `index.
 
 ---
 
-## Project Structure
-
-```
-DSA_Visualizer/
-├── index.html                  ← Main landing page
-├── README.md
-├── assets/
-│   └── demo.gif
-└── problems/
-    ├── spiral-matrix/
-    │   └── index.html
-    ├── search-2d-matrix/
-    │   └── index.html
-    └── heap-insert/
-        └── index.html
-```
-
----
-
-## Run Locally
-
-**Option 1 — Just open it:**
-```bash
-open index.html
-```
-
-**Option 2 — Serve it:**
-```bash
-npx serve .
-```
-
----
-
-## Deploy
-
-Pushes to `main` deploy automatically via GitHub Pages.
-
-```bash
-git add .
-git commit -m "your message"
-git push
-```
-
-Done. Changes are live within seconds.
-
----
-
 <div align="center">
 
 **Built by [Blake Allard](https://github.com/blakeallard)**
