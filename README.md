@@ -2,8 +2,6 @@
 
 ---
 
-## Preview
-
 <div align="center">
 
 ![DSA Visualizer Demo](assets/demo.gif)
