@@ -86,6 +86,4 @@ CS student @ Saddleback College → UCI Transfer 2027
 
 <br />
 
-*If this helped you think about algorithms differently, give it a ⭐*
-
 </div>
