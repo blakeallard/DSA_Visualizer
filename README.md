@@ -14,15 +14,6 @@
 
 <br />
 
-```
-██████╗ ███████╗ █████╗     ██╗   ██╗██╗███████╗
-██╔══██╗██╔════╝██╔══██╗    ██║   ██║██║╚══███╔╝
-██║  ██║███████╗███████║    ██║   ██║██║  ███╔╝ 
-██║  ██║╚════██║██╔══██║    ╚██╗ ██╔╝██║ ███╔╝  
-██████╔╝███████║██║  ██║     ╚████╔╝ ██║███████╗
-╚═════╝ ╚══════╝╚═╝  ╚═╝      ╚═══╝  ╚═╝╚══════╝
-```
-
 **Interactive algorithm visualizations built to expose the mechanics behind the code.**
 
 [![Live Demo](https://img.shields.io/badge/LIVE%20DEMO-%E2%86%92-FF4444?style=for-the-badge&labelColor=0d0d0d)](https://blakeallard.github.io/DSA_Visualizer/)
